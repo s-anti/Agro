@@ -16,7 +16,7 @@ nuleables = [
     # "vol_pasto_n",
     "observaciones",
     "fec_estimada",
-    "estado_desc",
+    "id_segui",
 ]
 # Que valores pueden ser ingresados como nulos,
 # Ya sea por que se autogeneran, como la foreign key,
@@ -222,6 +222,20 @@ class Main:
         if valores:
             self.cargar("parcela", [*valores.values()])
 
+    def cargarSeguimiento(self):
+        valores = cargar(
+            ["id_segui", "id_anim_seg", "estado_desc", "fec_estimada"],
+            [
+                "el código de seguimiento (opcional)",
+                "el código del animal",
+                "la descripción",
+                "la fecha estimada de nacimiento",
+            ],
+        )
+
+        if valores:
+            self.cargar("seguimiento", [*valores.values()])
+
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
 
@@ -242,9 +256,7 @@ class Main:
                     },
                     "Cargar animal": self.cargarVaca,
                     "Modificar animal": lambda: print("Modificando un animal"),
-                    "Cargar seguimiento": lambda: print(
-                        "Cargando el seguimiento de la vaca"
-                    ),
+                    "Cargar seguimiento": self.cargarSeguimiento,
                     "Eliminar animal": lambda: print("Eliminando un animal"),
                 },
                 "Campos, potreros y parcelas": {

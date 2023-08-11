@@ -57,7 +57,7 @@ class Db:
                 car_animal FLOAT NOT NULL,
                 vol_pasto_n FLOAT NOT NULL,
                 vol_pasto_l FLOAT NOT NULL,
-                FOREIGN KEY (id_camp) REFERENCES campo (id_camp)
+                FOREIGN KEY (id_camp_pot) REFERENCES campo (id_camp)
             )"""
         )
         # PASTO NATURAL E IMPLANTADO n y l
@@ -67,13 +67,13 @@ class Db:
                 id_parc INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_pot_parc INTEGER NOT NULL,
                 observaciones TEXT NULL,
-                FOREIGN KEY (id_pot) REFERENCES potrero (id_pot)
+                FOREIGN KEY (id_pot_parc) REFERENCES potrero (id_pot)
 
             )"""
         )
 
         self.cur.execute(
-            """CREATE TABLE IF NOT EXISTS seguimientos (
+            """CREATE TABLE IF NOT EXISTS seguimiento (
                 id_segui INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_anim_seg INTEGER NOT NULL,
                 estado_desc TEXT NOT NULL,
