@@ -210,7 +210,14 @@ class Main:
             self.cargar("potrero", [*valores.values()])
 
     def cargarParcela(self):
-        valores = cargar([], [])
+        valores = cargar(
+            ["id_parc", "id_pot_parc", "observaciones"],
+            [
+                "el código de la parcela (opcional)",
+                "el potrero donde está",
+                "otras observaciones (opcional)",
+            ],
+        )
 
         if valores:
             self.cargar("parcela", [*valores.values()])
