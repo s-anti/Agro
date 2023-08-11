@@ -6,7 +6,6 @@ import curses
 nuleables = [
     "id_anim",
     "id_padre",
-    "email",
     "id_cli",
     "id_campo",
     "id_pot",
@@ -38,7 +37,7 @@ decimales = [
 rangos = {
     "cat": ["Vaquillona", "Ternera", "Vaca adulta"],
     "sub_cat": ["Primera parición", "Segunda parición", "Vaca descarte"],
-    "tipo_campo": ["c1", "c2"],
+    "tipo_campo": ["Sierra", "Llano"],
     "hembra": ["Macho", "Hembra"],
 }
 textos = [
@@ -101,6 +100,9 @@ def ingresar(paraQue, variable):
                 except ValueError:
                     print("Ingrese un número válido...")
 
+            elif variable in textos:
+                return valor
+
             else:
                 if valor.isnumeric():
                     return int(valor)
@@ -155,6 +157,45 @@ class Main:
         else:
             print("Se canceló la operación")
 
+    def cargarCampo(self):
+        valores = cargar(
+            [
+                "id_camp",
+                "fec_alta",
+                "tipo_campo",
+                "nombre",
+                "propietario",
+                "telefono",
+                "email",
+                "hectareas",
+            ],
+            [
+                "el código del campo (Opcional)",
+                "la fecha de inicio de producción",
+                "el tipo de campo",
+                "el nombre del campo",
+                "el propietario",
+                "el telefono asociado",
+                "el e-mail asociado",
+                "la cantidad de hectáreas",
+            ],
+        )
+
+        if valores:
+            self.cargar("campo", [*valores.values()])
+
+    def cargarPotrero(self):
+        valores = cargar([], [])
+
+        if valores:
+            self.cargar("potrero", [*valores.values()])
+
+    def cargarParcela(self):
+        valores = cargar([], [])
+
+        if valores:
+            self.cargar("parcela", [*valores.values()])
+
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
 
@@ -183,19 +224,19 @@ class Main:
                 "Campos, potreros y parcelas": {
                     "Campos": {
                         "Listar Campos": lambda: print("Listando Campos"),
-                        "Cargar Campos": lambda: print("Cargando Campos"),
+                        "Cargar Campos": self.cargarCampo,
                         "Modificar Campos": lambda: print("Modificando Campos"),
                         "Eliminar Campos": lambda: print("Eliminando Campos"),
                     },
                     "Potreros": {
                         "Listar Potreros": lambda: print("Listando Potreros"),
-                        "Cargar Potreros": lambda: print("Cargando Potreros"),
+                        "Cargar Potreros": self.cargarPotrero,
                         "Modificar Potreros": lambda: print("Modificando Potreros"),
                         "Eliminar Potreros": lambda: print("Eliminando Potreros"),
                     },
                     "Parcelas": {
                         "Listar Parcelas": lambda: print("Listando Parcelas"),
-                        "Cargar Parcelas": lambda: print("Cargando Parcelas"),
+                        "Cargar Parcelas": self.cargarParcela,
                         "Modificar Parcelas": lambda: print("Modificando Parcelas"),
                         "Eliminar Parcelas": lambda: print("Eliminando Parcelas"),
                     },
