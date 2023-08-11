@@ -11,9 +11,9 @@ nuleables = [
     "id_pot",
     "id_camp",
     "id_parc",
-    "car_animal",
-    "vol_pasto_l",
-    "vol_pasto_n",
+    # "car_animal",
+    # "vol_pasto_l",
+    # "vol_pasto_n",
     "observaciones",
     "fec_estimada",
     "estado_desc",
@@ -185,7 +185,26 @@ class Main:
             self.cargar("campo", [*valores.values()])
 
     def cargarPotrero(self):
-        valores = cargar([], [])
+        valores = cargar(
+            [
+                "id_pot",
+                "id_camp_pot",
+                "ancho",
+                "largo",
+                "car_animal",
+                "vol_pasto_n",
+                "vol_pasto_l",
+            ],
+            [
+                "el código del potrero (Opcional)",
+                "el campo donde está el potrero",
+                "el ancho del potrero, en m",
+                "el largo del potrero, en m",
+                "la carga animal",
+                "el volúmen de pasto N",
+                "el volúmen de pasto L",
+            ],
+        )
 
         if valores:
             self.cargar("potrero", [*valores.values()])

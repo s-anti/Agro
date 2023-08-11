@@ -51,7 +51,7 @@ class Db:
         self.cur.execute(
             """CREATE TABLE IF NOT EXISTS potrero (
                 id_pot INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_camp INTEGER NOT NULL,
+                id_camp_pot INTEGER NOT NULL,
                 ancho FLOAT NOT NULL CHECK(ancho > 0),
                 largo FLOAT NOT NULL CHECK(largo > 0),
                 car_animal FLOAT NOT NULL,
@@ -65,7 +65,7 @@ class Db:
         self.cur.execute(
             """CREATE TABLE IF NOT EXISTS parcela (
                 id_parc INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_pot INTEGER NOT NULL,
+                id_pot_parc INTEGER NOT NULL,
                 observaciones TEXT NULL,
                 FOREIGN KEY (id_pot) REFERENCES potrero (id_pot)
 
