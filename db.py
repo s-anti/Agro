@@ -29,8 +29,10 @@ class Db:
                 hembra BOOLEAN NOT NULL,
                 cat INTEGER NOT NULL,
                 sub_cat INTEGER NOT NULL,
+                parc INTEGER NOT NULL,
                 FOREIGN KEY (id_padre) REFERENCES animal (id_anim),
-                FOREIGN KEY (id_madre) REFERENCES animal (id_anim)
+                FOREIGN KEY (id_madre) REFERENCES animal (id_anim),
+                FOREIGN KEY (parc) REFERENCES parcela (id_parc)
             )
             """
         )

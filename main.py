@@ -111,6 +111,7 @@ def ingresar(paraQue, variable):
                     print("Ingrese un entero positivo")
 
 
+# Funciones de apoyo
 def cargar(datos, textos):
     # len datos debe corresponder con len textos
     # los datos a cargar son como va en el registro
@@ -127,6 +128,61 @@ def cargar(datos, textos):
     return diccionario
 
 
+diccTitulos = {
+    "id_anim": "ID Animal",
+    "id_padre": "ID Padre",
+    "id_madre": "ID Madre",
+    "fec_nac": "Nacimiento",
+    "peso_nac": "Peso nacimiento",
+    "hembra": "Sexo",
+    "cat": "Categoría",
+    "sub_cat": "Subcategoría",
+    "parc": "Parcela",
+    "id_camp": "ID Campo",
+    "fec_alta": "Fecha de alta",
+    "tipo_campo": "Tipo",
+    "nombre": "Nombre",
+    "propietario": "Propietario",
+    "telefono": "Teléfono",
+    "email": "E-Mail",
+    "hectareas": "Hectáreas",
+    "id_pot": "ID Potrero",
+    "id_camp_pot": "ID Campo",
+    "ancho": "Ancho",
+    "largo": "Largo",
+    "car_animal": "Carga animal",
+    "vol_pasto_n": "Volumen pasto N",
+    "vol_pasto_l": "Volumen pasto L",
+    "id_parc": "ID Parcela",
+    "id_pot_parc": "ID Potrero",
+    "observaciones": "Observaciones",
+}
+
+
+def tabla(datos):
+    if not datos:
+        print("No hay registros para mostrar")
+        return
+    anchos = []
+    header = ""
+
+    for dato in datos[0].keys():
+        dt = f" {diccTitulos[dato]} "
+
+        anchos.append(len(dt))
+
+        header += dt
+
+    print(header)
+
+    for linea in datos:
+        lineaTexto = ""
+        for i, dato in enumerate(linea):
+            # TODO: Mostrar distinto los distintos tipos de dato
+            lineaTexto += str(dato).center(anchos[i])
+        print(lineaTexto)
+
+
 class Main:
     def cargarVaca(self):
         valores = cargar(
@@ -139,6 +195,7 @@ class Main:
                 "hembra",
                 "cat",
                 "sub_cat",
+                "parc",
             ],
             [
                 "el código de la vaca (Opcional)",
@@ -149,6 +206,7 @@ class Main:
                 "saber si es macho o hembra",
                 "su categoría",
                 "su subcategoría",
+                "la parcela donde está",
             ],
         )
 
@@ -236,6 +294,62 @@ class Main:
         if valores:
             self.cargar("seguimiento", [*valores.values()])
 
+    def leerVacasTodos(self):
+        tabla(self.leer("select * from animal"))
+
+    def leerVacasCampo(self):
+        campo = input("Ingrese el campo para buscar: ")
+        tabla(
+            self.leer(
+                """select animal.* from animal
+        join parcela on id_parc = parc
+        join potrero on id_pot = id_pot_parc
+        join campo on id_camp = id_camp_pot
+        where id_camp = {}""".format(
+                    campo
+                )
+            )
+        )
+
+    def leerVacasPotrero(self):
+        pot = input("Ingrese el potrero para buscar: ")
+        tabla(
+            self.leer(
+                """select animal.* from animal
+        join parcela on id_parc = parc
+        join potrero on id_pot = id_pot_parc
+        where id_pot = {}""".format(
+                    pot
+                )
+            )
+        )
+
+    def leerVacasParcela(self):
+        parcela = input("Ingrese la parcela para buscar: ")
+        tabla(
+            self.leer(
+                """select animal.* from animal
+        join parcela on id_parc = parc
+        join potrero on id_pot = id_pot_parc
+        where id_pot = {}""".format(
+                    parcela
+                )
+            )
+        )
+
+    def leerCampos(self):
+        tabla(self.leer("select * from campo"))
+
+    def leerPotreros(self):
+        tabla(self.leer("select * from potrero"))
+
+    def leerParcelas(self):
+        tabla(
+            self.leer(
+                "select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"
+            )
+        )
+
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
 
@@ -249,10 +363,10 @@ class Main:
             "Proyecto ingeniero agrónomo": {
                 "Menu animales": {
                     "Listar animales": {
-                        "Por campo": lambda: print("Mostrando por campo"),
-                        "Por potrero": lambda: print("Mostrando por potrero"),
-                        "Por parcela": lambda: print("Mostrando por parcela"),
-                        "Todos": lambda: print("Mostrando odos"),
+                        "Por campo": self.leerVacasCampo,
+                        "Por potrero": self.leerVacasPotrero,
+                        "Por parcela": self.leerVacasParcela,
+                        "Todos": self.leerVacasTodos,
                     },
                     "Cargar animal": self.cargarVaca,
                     "Modificar animal": lambda: print("Modificando un animal"),
@@ -261,19 +375,19 @@ class Main:
                 },
                 "Campos, potreros y parcelas": {
                     "Campos": {
-                        "Listar Campos": lambda: print("Listando Campos"),
+                        "Listar Campos": self.leerCampos,
                         "Cargar Campos": self.cargarCampo,
                         "Modificar Campos": lambda: print("Modificando Campos"),
                         "Eliminar Campos": lambda: print("Eliminando Campos"),
                     },
                     "Potreros": {
-                        "Listar Potreros": lambda: print("Listando Potreros"),
+                        "Listar Potreros": self.leerPotreros,
                         "Cargar Potreros": self.cargarPotrero,
                         "Modificar Potreros": lambda: print("Modificando Potreros"),
                         "Eliminar Potreros": lambda: print("Eliminando Potreros"),
                     },
                     "Parcelas": {
-                        "Listar Parcelas": lambda: print("Listando Parcelas"),
+                        "Listar Parcelas": self.leerParcelas,
                         "Cargar Parcelas": self.cargarParcela,
                         "Modificar Parcelas": lambda: print("Modificando Parcelas"),
                         "Eliminar Parcelas": lambda: print("Eliminando Parcelas"),
@@ -293,6 +407,9 @@ class Main:
         if seEjectua:
             self.menu.iniciar()
 
+    def leer(self, query):
+        return self.db.fetch(query)
+
     def cargar(self, tabla: str, datos: list) -> None:
         signos = ("?, " * (len(datos) - 1)) + "?"
         # Crea un string "(?, ?, ?)" con la cantidad de signos necesitada por la consulta
@@ -305,6 +422,10 @@ class Main:
         self.db.insert("insert into {} values ({})".format(tabla, signos), datos)
         pass
 
+
+# Observaciones mías:
+# Cómo sé la cantidad de vacas por campo, potrero, y parcela?
+# le agrego parcela a la vaca
 
 main = Main(False)
 main.menu.iniciar()
