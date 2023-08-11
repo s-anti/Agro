@@ -51,12 +51,15 @@ textos = [
 ]
 
 
-def ingresar(paraQue, variable):
+def ingresar(paraQue, variable, datoViejo=None):
     print("")
     print("Ingrese el valor para", paraQue)
 
-    if variable in nuleables:
+    if variable in nuleables and not datoViejo:
         print("Presione 'enter' si no tiene (Se puede modificar)")
+
+    elif datoViejo:
+        print(f"Presione 'enter' para mantener el valor '{datoViejo}'")
 
     elif variable in rangos.keys():
         print("Las opciones son:")
@@ -79,8 +82,12 @@ def ingresar(paraQue, variable):
     while True:
         valor = input("Valor: ")
 
-        if valor.lower().strip() == "" and variable in nuleables:
-            return
+        if valor.lower().strip() == "":
+            if datoViejo:
+                return datoViejo
+                # Se debería poder nulear un dato ya ingbersado pero ya fue
+            if variable in nuleables:
+                return
 
         if valor.lower().strip() == "0":
             return "CANCELAMOS"
@@ -111,21 +118,20 @@ def ingresar(paraQue, variable):
                     print("Ingrese un entero positivo")
 
 
-
-
-
 # Funciones de apoyo
-def cargar(datos, textos):
+def cargar(datos, textos, datos_viejos=None):
     # len datos debe corresponder con len textos
     # los datos a cargar son como va en el registro
     # Textos es visual
 
+    indice = 0
     diccionario = {}
     for llave, texto in zip(datos, textos):
-        c = ingresar(texto, llave)
+        c = ingresar(texto, llave, datos_viejos[indice])
         if c == "CANCELAMOS":
             return
         diccionario[llave] = c
+        indice += 1
 
     return diccionario
 
@@ -190,13 +196,31 @@ def tabla(datos):
         print(lineaTexto)
 
 
-
 class Main:
-    def validarEnTabla(self, tabla, idN, id):
-      r = self.leer("select * from {} where {} = {}".format(tabla, idN, id))
-      print("El r en laa validación es", r)
+    def validarEnTabla(self, tabla, idN):
+        print("Ingrese la ID para modificar")
+        print("Ingrese 0 para cancelar")
+        while True:
+            valor = input("Valor: ")
 
+            valor = valor.strip()
 
+            if valor.isnumeric():
+                if int(valor) == 0:
+                    return
+                elif int(valor) > 0:
+                    r = self.leer(
+                        "select * from {} where {} = {}".format(tabla, idN, valor)
+                    )
+
+                    if r:
+                        return valor
+                    else:
+                        print("No se encuentra")
+                else:
+                    print("Ingrese un positivo")
+            else:
+                print("Ingrese un número...")
 
     def cargarVaca(self):
         valores = cargar(
@@ -230,7 +254,36 @@ class Main:
             print("Se canceló la operación")
 
     def modificarVaca(self):
+        # TODO: ver que hago con esto, que se puede modificar
+        idObj = self.validarEnTabla("animal", "id_anim")
 
+        datos = cargar(
+            [
+                "id_padre",
+                "id_madre",
+                "fec_nac",
+                "peso_nac",
+                "hembra",
+                "cat",
+                "sub_cat",
+                "parc",
+            ],
+            [
+                "la nueva ID del padre",
+                "la nueva ID de la madre",
+                "la nueva fecha de nacimiento",
+                "el nuevo peso de nacimiento",
+                "actualizar el género",
+                "la nueva categoría",
+                "la nueva subcategoría",
+                "la nueva parcela",
+            ],
+            self.leer(
+                "select id_padre, id_madre, fec_nac, peso_nac, hembra, cat, sub_cat, parc from animal where id_anim = {}".format(
+                    idObj
+                )
+            )[0],
+        )
 
     def cargarCampo(self):
         valores = cargar(
@@ -405,7 +458,7 @@ class Main:
                     },
                     "Cargar animal": self.cargarVaca,
                     "Cargar seguimiento": self.cargarSeguimiento,
-                    "Modificar animal": lambda: print("Modificando un animal"),
+                    "Modificar animal": self.modificarVaca,
                     "Eliminar animal": lambda: print("Eliminando un animal"),
                 },
                 "Campos, potreros y parcelas": {
@@ -463,6 +516,6 @@ class Main:
 # Observaciones mías:
 # Cómo sé la cantidad de vacas por campo, potrero, y parcela?
 # le agrego parcela a la vaca
-
+# Qué valores se pueden modificar?
 main = Main(False)
 main.menu.iniciar()
