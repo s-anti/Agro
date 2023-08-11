@@ -111,6 +111,9 @@ def ingresar(paraQue, variable):
                     print("Ingrese un entero positivo")
 
 
+
+
+
 # Funciones de apoyo
 def cargar(datos, textos):
     # len datos debe corresponder con len textos
@@ -124,10 +127,12 @@ def cargar(datos, textos):
             return
         diccionario[llave] = c
 
-    print("Sacamso", diccionario)
     return diccionario
 
 
+# def modificarVaca
+# valores = modificar
+# if valores self.modificar
 diccTitulos = {
     "id_anim": "ID Animal",
     "id_padre": "ID Padre",
@@ -156,6 +161,8 @@ diccTitulos = {
     "id_parc": "ID Parcela",
     "id_pot_parc": "ID Potrero",
     "observaciones": "Observaciones",
+    "id_cli": "ID Cliente",
+    "apellido": "Apellido",
 }
 
 
@@ -183,7 +190,14 @@ def tabla(datos):
         print(lineaTexto)
 
 
+
 class Main:
+    def validarEnTabla(self, tabla, idN, id):
+      r = self.leer("select * from {} where {} = {}".format(tabla, idN, id))
+      print("El r en laa validación es", r)
+
+
+
     def cargarVaca(self):
         valores = cargar(
             [
@@ -214,6 +228,9 @@ class Main:
             self.cargar("animal", [*valores.values()])
         else:
             print("Se canceló la operación")
+
+    def modificarVaca(self):
+
 
     def cargarCampo(self):
         valores = cargar(
@@ -346,9 +363,27 @@ class Main:
     def leerParcelas(self):
         tabla(
             self.leer(
-                "select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"
+                """select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"""
             )
         )
+
+    def leerUsuarios(self):
+        tabla(self.leer("select * from cliente"))
+
+    def cargarUsuario(self):
+        valores = cargar(
+            ["id_cli", "nombre", "apellido", "telefono", "email"],
+            [
+                "el código de cliente (opcional)",
+                "el nombre",
+                "el apellido",
+                "numero de telefono",
+                "el E-Mail",
+            ],
+        )
+
+        if valores:
+            self.cargar("cliente", [*valores.values()])
 
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
@@ -369,8 +404,8 @@ class Main:
                         "Todos": self.leerVacasTodos,
                     },
                     "Cargar animal": self.cargarVaca,
-                    "Modificar animal": lambda: print("Modificando un animal"),
                     "Cargar seguimiento": self.cargarSeguimiento,
+                    "Modificar animal": lambda: print("Modificando un animal"),
                     "Eliminar animal": lambda: print("Eliminando un animal"),
                 },
                 "Campos, potreros y parcelas": {
@@ -393,11 +428,13 @@ class Main:
                         "Eliminar Parcelas": lambda: print("Eliminando Parcelas"),
                     },
                 },
-                "usuario": {
-                    "listado usuarios": lambda: print("Listado de usuarios"),
-                    "carga de usuarios": lambda: print("Carga de usuarios"),
-                    " de usuarios": lambda: print(" de usuarios"),
-                    "carga de usuarios": lambda: print("Carga de usuarios"),
+                "Usuarios": {
+                    "Listado de usuarios": self.leerUsuarios,
+                    "Carga de usuarios": self.cargarUsuario,
+                    "Modificación de usuarios": lambda: print(
+                        "Modificación de usuarios"
+                    ),
+                    "Baja de usuarios": lambda: print("Baja de usuarios"),
                 },
             }
         }
