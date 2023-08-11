@@ -4,6 +4,9 @@ import sqlite3 as sql
 class Db:
     def __init__(self) -> None:
         self.conn = sql.connect("base.sqlite3")
+
+        self.conn.row_factory = sql.Row
+
         self.cur = self.conn.cursor()
 
         self.cur.execute(
@@ -26,8 +29,8 @@ class Db:
                 hembra BOOLEAN NOT NULL,
                 cat INTEGER NOT NULL,
                 sub_cat INTEGER NOT NULL,
-                FOREIGN KEY (id_padre) REFERENCES animal (id),
-                FOREIGN KEY (id_madre) REFERENCES animal (id)
+                FOREIGN KEY (id_padre) REFERENCES animal (id_anim),
+                FOREIGN KEY (id_madre) REFERENCES animal (id_anim)
             )
             """
         )
@@ -40,7 +43,7 @@ class Db:
                 nombre VARCHAR2 NOT NULL,
                 propietario VARCHAR2 NOT NULL,
                 telefono VARCHAR2 NOT NULL,
-                main VARCHAR2 NOT NULL,
+                email VARCHAR2 NOT NULL,
                 hectareas FLOAT NOT NULL
             )"""
         )
@@ -54,7 +57,7 @@ class Db:
                 car_animal FLOAT NOT NULL,
                 vol_pasto_n FLOAT NOT NULL,
                 vol_pasto_l FLOAT NOT NULL,
-                FOREIGN KEY (id_camp) REFERENCES campo (id)
+                FOREIGN KEY (id_camp) REFERENCES campo (id_camp)
             )"""
         )
         # PASTO NATURAL E IMPLANTADO n y l
@@ -64,17 +67,29 @@ class Db:
                 id_parc INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_pot INTEGER NOT NULL,
                 observaciones TEXT NULL,
-                FOREIGN KEY (id_pot) REFERENCES potrero (id)
+                FOREIGN KEY (id_pot) REFERENCES potrero (id_pot)
 
             )"""
         )
 
         self.cur.execute(
             """CREATE TABLE IF NOT EXISTS seguimientos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_anim INTEGER NOT NULL,
+                id_segui INTEGER PRIMARY KEY AUTOINCREMENT,
+                id_anim_seg INTEGER NOT NULL,
                 estado_desc TEXT NOT NULL,
                 fec_estimada DATE NOT NULL,
-                FOREIGN KEY (id_anim) REFERENCES animal (id)
+                FOREIGN KEY (id_anim_seg) REFERENCES animal (id_anim)
             )"""
         )
+
+    def fetch(self, query):
+        cur = self.conn.cursor()
+        cur.execute(query)
+        data = cur.fetchall()
+        cur.close()
+        return data
+
+    def insert(self, query: str, datos):
+        self.cur.execute(query, datos)
+        self.conn.commit()
+        # Se podría pedir confirmación antes del commit pero no me dá el tiempo ahora

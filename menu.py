@@ -3,9 +3,6 @@ class Menu:
     """Una clase para hacer menúes que sean
     adaptables en base a diccionarios"""
 
-    posicion = ""
-    # Que tan "profundo" nos encontramos en el menú
-
     def __init__(self, dicc: dict, linea: str = "______________________"):
         # linea es el separador que vamos a usar
         self.linea = linea
@@ -20,7 +17,7 @@ class Menu:
             v = input(f"Ingrese un valor ({numeros[0]} - {numeros[-1]}): ")
 
             if not v.isnumeric():
-                print("Debe ingresar un numero...\n")
+                print("Debe ingresar un número...\n")
                 continue
 
             v = int(v)
@@ -101,6 +98,3 @@ if __name__ == "__main__":
             },
         }
     }
-
-    menu = Menu(mi_menu)
-    menu.iniciar()
