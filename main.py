@@ -38,7 +38,7 @@ rangos = {
     "cat": ["Vaquillona", "Ternera", "Vaca adulta"],
     "sub_cat": ["Primera parición", "Segunda parición", "Vaca descarte"],
     "tipo_campo": ["Sierra", "Llano"],
-    "hembra": ["Macho", "Hembra"],
+    "sexo": ["Macho", "Hembra"],
 }
 textos = [
     "nombre",
@@ -50,34 +50,64 @@ textos = [
     "estado_desc",
 ]
 
+# def modificarVaca
+# valores = modificar
+# if valores self.modificar
+diccTitulos = {
+    "id_anim": "ID Animal",
+    "id_padre": "ID Padre",
+    "id_madre": "ID Madre",
+    "fec_nac": "Nacimiento",
+    "peso_nac": "Peso nacimiento",
+    "sexo": "Sexo",
+    "cat": "Categoría",
+    "sub_cat": "Subcategoría",
+    "parc": "Parcela",
+    "id_camp": "ID Campo",
+    "fec_alta": "Fecha de alta",
+    "tipo_campo": "Tipo",
+    "nombre": "Nombre",
+    "propietario": "Propietario",
+    "telefono": "Teléfono",
+    "email": "E-Mail",
+    "hectareas": "Hectáreas",
+    "id_pot": "ID Potrero",
+    "id_camp_pot": "ID Campo",
+    "ancho": "Ancho",
+    "largo": "Largo",
+    "car_animal": "Carga animal",
+    "vol_pasto_n": "Volumen pasto N",
+    "vol_pasto_l": "Volumen pasto L",
+    "id_parc": "ID Parcela",
+    "id_pot_parc": "ID Potrero",
+    "observaciones": "Observaciones",
+    "id_cli": "ID Cliente",
+    "apellido": "Apellido",
+}
+
 
 def ingresar(paraQue, variable, datoViejo=None):
+    # TODO: VALIDAR UNIQUES
     print("")
     print("Ingrese el valor para", paraQue)
 
     if variable in nuleables and not datoViejo:
         print("Presione 'enter' si no tiene (Se puede modificar)")
 
-    elif datoViejo:
-        print(f"Presione 'enter' para mantener el valor '{datoViejo}'")
+    if datoViejo:
+        if variable in rangos:
+            print(
+                f"Presione 'enter' para mantener el valor '{rangos[variable][int(datoViejo)]}'"
+            )
+        else:
+            print(f"Presione 'enter' para mantener el valor '{datoViejo}'")
 
-    elif variable in rangos.keys():
+    print("Ingrese 0 para cancelar la operación")
+
+    if variable in rangos.keys():
         print("Las opciones son:")
         for i, j in enumerate(rangos[variable]):
             print(f"{i + 1}) {j}")
-
-        while True:
-            valor = input("Valor: ")
-
-            if valor.isnumeric():
-                valor = int(valor)
-
-                if valor - 1 in range(len(rangos[variable])):
-                    return valor
-
-            print(f"Ingrese un entero del 1 al {len(rangos[variable])}...")
-
-    print("Ingrese 0 para cancelar la operación")
 
     while True:
         valor = input("Valor: ")
@@ -110,6 +140,15 @@ def ingresar(paraQue, variable, datoViejo=None):
             elif variable in textos:
                 return valor
 
+            elif variable in rangos:
+                if valor.isnumeric():
+                    valor = int(valor)
+
+                    if valor - 1 in range(len(rangos[variable])):
+                        return valor
+
+                print(f"Ingrese un entero del 1 al {len(rangos[variable])}...")
+
             else:
                 if valor.isnumeric():
                     return int(valor)
@@ -127,52 +166,35 @@ def cargar(datos, textos, datos_viejos=None):
     indice = 0
     diccionario = {}
     for llave, texto in zip(datos, textos):
-        c = ingresar(texto, llave, datos_viejos[indice])
+        # Le paso los datos viejos si estamos modificando, si no, no
+        c = ingresar(texto, llave, datos_viejos[indice] if datos_viejos else None)
         if c == "CANCELAMOS":
             return
         diccionario[llave] = c
         indice += 1
 
-    return diccionario
+    # Confirmación
+    print("\nDatos cargados: ")
+    # tabla() si o sí me pide una lista de diccionarios así que tiene que ir así
 
+    for key, value in diccionario.items():
+        print(f"{diccTitulos[key]}: {value}")
+    print("")
+    while True:
+        print("Confirma estos datos?")
+        v = input("Si, No: ").lower().strip()
 
-# def modificarVaca
-# valores = modificar
-# if valores self.modificar
-diccTitulos = {
-    "id_anim": "ID Animal",
-    "id_padre": "ID Padre",
-    "id_madre": "ID Madre",
-    "fec_nac": "Nacimiento",
-    "peso_nac": "Peso nacimiento",
-    "hembra": "Sexo",
-    "cat": "Categoría",
-    "sub_cat": "Subcategoría",
-    "parc": "Parcela",
-    "id_camp": "ID Campo",
-    "fec_alta": "Fecha de alta",
-    "tipo_campo": "Tipo",
-    "nombre": "Nombre",
-    "propietario": "Propietario",
-    "telefono": "Teléfono",
-    "email": "E-Mail",
-    "hectareas": "Hectáreas",
-    "id_pot": "ID Potrero",
-    "id_camp_pot": "ID Campo",
-    "ancho": "Ancho",
-    "largo": "Largo",
-    "car_animal": "Carga animal",
-    "vol_pasto_n": "Volumen pasto N",
-    "vol_pasto_l": "Volumen pasto L",
-    "id_parc": "ID Parcela",
-    "id_pot_parc": "ID Potrero",
-    "observaciones": "Observaciones",
-    "id_cli": "ID Cliente",
-    "apellido": "Apellido",
-}
+        if v in ("si", "s", "1"):
+            return diccionario
+        elif v in ("no", "n", 0):
+            return
+
+        print("No valido, reintente...")
 
 
 def tabla(datos):
+    print("Datos sobn", datos)
+
     if not datos:
         print("No hay registros para mostrar")
         return
@@ -180,7 +202,7 @@ def tabla(datos):
     header = ""
 
     for dato in datos[0].keys():
-        dt = f" {diccTitulos[dato]} "
+        dt = f"   {diccTitulos[dato]}   "
 
         anchos.append(len(dt))
 
@@ -190,9 +212,17 @@ def tabla(datos):
 
     for linea in datos:
         lineaTexto = ""
+        keys = [*linea.keys()]
+
         for i, dato in enumerate(linea):
-            # TODO: Mostrar distinto los distintos tipos de dato
+            # Si la key está dentro de los rangos, en vez del dato presento el valor asociado
+            # Se puede expandir para otros tipos de dato
+            # print(f"dato {dato} i {i} keys[i] {keys[i]}")
+            # if keys[i] in rangos:
+            #     lineaTexto += str(rangos[keys[i]][int(dato) - 1]).center(anchos[i])
+            # else:
             lineaTexto += str(dato).center(anchos[i])
+
         print(lineaTexto)
 
 
@@ -230,7 +260,7 @@ class Main:
                 "id_madre",
                 "fec_nac",
                 "peso_nac",
-                "hembra",
+                "sexo",
                 "cat",
                 "sub_cat",
                 "parc",
@@ -263,7 +293,7 @@ class Main:
                 "id_madre",
                 "fec_nac",
                 "peso_nac",
-                "hembra",
+                "sexo",
                 "cat",
                 "sub_cat",
                 "parc",
@@ -273,13 +303,13 @@ class Main:
                 "la nueva ID de la madre",
                 "la nueva fecha de nacimiento",
                 "el nuevo peso de nacimiento",
-                "actualizar el género",
+                "el nuevo sexo",
                 "la nueva categoría",
                 "la nueva subcategoría",
                 "la nueva parcela",
             ],
             self.leer(
-                "select id_padre, id_madre, fec_nac, peso_nac, hembra, cat, sub_cat, parc from animal where id_anim = {}".format(
+                "select id_padre, id_madre, fec_nac, peso_nac, sexo, cat, sub_cat, parc from animal where id_anim = {}".format(
                     idObj
                 )
             )[0],
@@ -504,12 +534,8 @@ class Main:
         signos = ("?, " * (len(datos) - 1)) + "?"
         # Crea un string "(?, ?, ?)" con la cantidad de signos necesitada por la consulta
 
-        print(
-            "El string para el query en cargar es ",
-            "insert into {} values ({})".format(tabla, signos),
-        )
-        print("con", datos)
         self.db.insert("insert into {} values ({})".format(tabla, signos), datos)
+        print("\nDatos cargados correctamente...")
         pass
 
 

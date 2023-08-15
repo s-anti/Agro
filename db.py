@@ -26,7 +26,7 @@ class Db:
                 id_madre INTEGER NOT NULL,
                 fec_nac DATE NOT NULL,
                 peso_nac FLOAT NOT NULL,
-                hembra BOOLEAN NOT NULL,
+                sexo NUMBER(1) NOT NULL,
                 cat INTEGER NOT NULL,
                 sub_cat INTEGER NOT NULL,
                 parc INTEGER NOT NULL,
@@ -86,13 +86,12 @@ class Db:
 
     def fetch(self, query):
         cur = self.conn.cursor()
-        print("Ejecutando ", query)
+        print("Ejecutando fetch ", query)
         cur.execute(query)
         data = cur.fetchall()
         cur.close()
         return data
 
     def insert(self, query: str, datos):
-        self.cur.execute(query, datos)
         self.conn.commit()
         # Se podría pedir confirmación antes del commit pero no me dá el tiempo ahora
