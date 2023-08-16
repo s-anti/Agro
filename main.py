@@ -1,6 +1,5 @@
 from db import Db
 from menu import Menu
-import curses
 
 
 nuleables = [
@@ -23,7 +22,7 @@ nuleables = [
 # o por que no son estrictamente requeridos
 # Se usa en ingresar()
 
-fechas = ["fec_nac", "fec_alta", "fec_estimada"]
+fechas = ["fec_nac", "fec_alta", "fec_estimada", "fec_seg"]
 decimales = [
     "peso_nac",
     "hectareas",
@@ -83,6 +82,7 @@ diccTitulos = {
     "observaciones": "Observaciones",
     "id_cli": "ID Cliente",
     "apellido": "Apellido",
+    "fec_seg": "Fecha del seguimiento",
 }
 
 
@@ -246,7 +246,7 @@ class Main:
                     if r:
                         return valor
                     else:
-                        print("No se encuentra")
+                        print("No se encuentra esa ID")
                 else:
                     print("Ingrese un positivo")
             else:
@@ -444,11 +444,11 @@ class Main:
         tabla(self.leer("select * from potrero"))
 
     def leerParcelas(self):
-        tabla(
-            self.leer(
-                """select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"""
-            )
+        a = self.leer(
+            """select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"""
         )
+        print("Nos trae", a)
+        tabla(a)
 
     def leerUsuarios(self):
         tabla(self.leer("select * from cliente"))
@@ -467,6 +467,29 @@ class Main:
 
         if valores:
             self.cargar("cliente", [*valores.values()])
+
+    def leerSeguimientos(self):
+        id = self.validarEnTabla("animal", "id_anim")
+
+        valores = self.leer(
+            "select id_segui, estado_desc, fec_estimada from seguimiento where id_anim_seg = {}".format(
+                id
+            )
+        )
+        for linea in valores:
+            print(f"\nFecha: {linea['fec_seg']}")
+            print(f"Animal: {linea['id_anim_seg']}")
+            if linea["estado_desc"]:
+                print(f"Descripción: {linea['estado_desc']}")
+            else:
+                print("No se registró descripción")
+
+            if linea["fec_estimada"]:
+                print(f"Fecha estimada de parición: {linea['fec_estimada']}")
+            else:
+                print("No hay fecha de parición estimada")
+
+        print("Los valores del seguimiento son", valores)
 
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
@@ -487,9 +510,14 @@ class Main:
                         "Todos": self.leerVacasTodos,
                     },
                     "Cargar animal": self.cargarVaca,
-                    "Cargar seguimiento": self.cargarSeguimiento,
                     "Modificar animal": self.modificarVaca,
                     "Eliminar animal": lambda: print("Eliminando un animal"),
+                },
+                "Seguimientos": {
+                    "Listar seguimientos": self.leerSeguimientos,
+                    "Cargar seguimiento": self.cargarSeguimiento,
+                    "Modificar seguimiento": lambda: print("Modificar seguimiento"),
+                    "Eliminar seguimiento": lambda: print("Eliminar seguimiento"),
                 },
                 "Campos, potreros y parcelas": {
                     "Campos": {
@@ -539,9 +567,18 @@ class Main:
         pass
 
 
+# Validar existencias de parcelas, campos y
+
 # Observaciones mías:
 # Cómo sé la cantidad de vacas por campo, potrero, y parcela?
 # le agrego parcela a la vaca
 # Qué valores se pueden modificar?
+
+# TODO: Hacer las IDs automáticas por defecto pero no se si sí o si no
+
+# De lo que chusmié en otros trabajos
+# Cambiar todos los animales un potrero a otro
+# categorías vientre, vaquita 1 año, 2 años, ternero y toro
+# Subcategorías de vientre: 1ra parición, 2da parición, vaca, y2 descarte
 main = Main(False)
 main.menu.iniciar()
