@@ -394,9 +394,6 @@ class Main:
         if valores:
             self.cargar("seguimiento", [*valores.values()])
 
-    def leerVacasTodos(self):
-        tabla(self.leer("select * from animal"))
-
     def leerVacasCampo(self):
         campo = input("Ingrese el campo para buscar: ")
         tabla(
@@ -436,22 +433,6 @@ class Main:
                 )
             )
         )
-
-    def leerCampos(self):
-        tabla(self.leer("select * from campo"))
-
-    def leerPotreros(self):
-        tabla(self.leer("select * from potrero"))
-
-    def leerParcelas(self):
-        a = self.leer(
-            """select parcela.*, id_camp from parcela join potrero on id_pot = id_pot_parc join campo on id_camp = id_camp_pot"""
-        )
-        print("Nos trae", a)
-        tabla(a)
-
-    def leerUsuarios(self):
-        tabla(self.leer("select * from cliente"))
 
     def cargarUsuario(self):
         valores = cargar(
@@ -507,7 +488,7 @@ class Main:
                         "Por campo": self.leerVacasCampo,
                         "Por potrero": self.leerVacasPotrero,
                         "Por parcela": self.leerVacasParcela,
-                        "Todos": self.leerVacasTodos,
+                        "Todos": lambda: self.funcionLeer("select * from animal"),
                     },
                     "Cargar animal": self.cargarVaca,
                     "Modificar animal": self.modificarVaca,
@@ -516,35 +497,43 @@ class Main:
                 "Seguimientos": {
                     "Listar seguimientos": self.leerSeguimientos,
                     "Cargar seguimiento": self.cargarSeguimiento,
-                    "Modificar seguimiento": lambda: print("Modificar seguimiento"),
+                    "Modificar seguimiento": self.modificarSeguimiento,
                     "Eliminar seguimiento": lambda: print("Eliminar seguimiento"),
                 },
                 "Campos, potreros y parcelas": {
                     "Campos": {
-                        "Listar Campos": self.leerCampos,
+                        "Listar Campos": lambda: self.funcionLeer(
+                            "select * from campo"
+                        ),
                         "Cargar Campos": self.cargarCampo,
-                        "Modificar Campos": lambda: print("Modificando Campos"),
+                        "Modificar Campos": lambda: self.funcionLeer(
+                            "select * from potrero"
+                        ),
                         "Eliminar Campos": lambda: print("Eliminando Campos"),
                     },
                     "Potreros": {
-                        "Listar Potreros": self.leerPotreros,
+                        "Listar Potreros": lambda: self.funcionLeer(
+                            "select * from potrero"
+                        ),
                         "Cargar Potreros": self.cargarPotrero,
-                        "Modificar Potreros": lambda: print("Modificando Potreros"),
+                        "Modificar Potreros": self.modificarPotrero,
                         "Eliminar Potreros": lambda: print("Eliminando Potreros"),
                     },
                     "Parcelas": {
-                        "Listar Parcelas": self.leerParcelas,
+                        "Listar Parcelas": lambda: self.funcionLeer(
+                            "select parcela.*, id_pot, id_pot_camp from parcela join potrero on id_pot = id_pot_parc"
+                        ),
                         "Cargar Parcelas": self.cargarParcela,
-                        "Modificar Parcelas": lambda: print("Modificando Parcelas"),
+                        "Modificar Parcelas": self.modificarParcela,
                         "Eliminar Parcelas": lambda: print("Eliminando Parcelas"),
                     },
                 },
                 "Usuarios": {
-                    "Listado de usuarios": self.leerUsuarios,
-                    "Carga de usuarios": self.cargarUsuario,
-                    "Modificación de usuarios": lambda: print(
-                        "Modificación de usuarios"
+                    "Listado de usuarios": lambda: self.funcionLeer(
+                        "select * from usuario"
                     ),
+                    "Carga de usuarios": self.cargarUsuario,
+                    "Modificación de usuarios": self.modificarUsuario,
                     "Baja de usuarios": lambda: print("Baja de usuarios"),
                 },
             }
@@ -557,6 +546,9 @@ class Main:
 
     def leer(self, query):
         return self.db.fetch(query)
+
+    def funcionLeer(self, query):
+        tabla(self.leer(query))
 
     def cargar(self, tabla: str, datos: list) -> None:
         signos = ("?, " * (len(datos) - 1)) + "?"
