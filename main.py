@@ -83,6 +83,10 @@ diccTitulos = {
     "id_cli": "ID Cliente",
     "apellido": "Apellido",
     "fec_seg": "Fecha del seguimiento",
+    "id_segui": "Código de seguimiento",
+    "id_anim_seg": "Animal del seguimiento",
+    "fec_estimada": "Fecha estimada de parición",
+    "estado_desc": "Descripción del estado",
 }
 
 
@@ -178,7 +182,10 @@ def cargar(datos, textos, datos_viejos=None):
     # tabla() si o sí me pide una lista de diccionarios así que tiene que ir así
 
     for key, value in diccionario.items():
-        print(f"{diccTitulos[key]}: {value}")
+        if value:
+            print(f"{diccTitulos[key]}: {value}")
+        else:
+            print(f"{diccTitulos[key]}: -")
     print("")
     while True:
         print("Confirma estos datos?")
@@ -228,7 +235,7 @@ def tabla(datos):
 
 class Main:
     def validarEnTabla(self, tabla, idN):
-        print("Ingrese la ID para modificar")
+        print("Ingrese la ID para seleccionar")
         print("Ingrese 0 para cancelar")
         while True:
             valor = input("Valor: ")
@@ -284,7 +291,7 @@ class Main:
             print("Se canceló la operación")
 
     def modificarVaca(self):
-        # TODO: ver que hago con esto, que se puede modificar
+        # TODO: ver que hago con esto, que valores se puede modificar y que nop
         idObj = self.validarEnTabla("animal", "id_anim")
 
         datos = cargar(
@@ -314,6 +321,32 @@ class Main:
                 )
             )[0],
         )
+
+    def modificarSeguimiento(self):
+        idObj = self.validarEnTabla("seguimiento", "id_segui")
+
+        datos = cargar(
+            ["id_anim_seg", "estado_desc", "fec_estimada"],
+            [
+                "el código del nuevo animal",
+                "la nueva descripción",
+                "la nueva fecha estimada de nacimiento",
+            ],
+            self.leer(
+                "select id_anim_seg, fec_seg, estado_desc, fec_estimada from seguimiento where id_segui = {}".format(
+                    idObj
+                )
+            )[0],
+        )
+
+    def modificarPotrero(self):
+        pass
+
+    def modificarParcela(self):
+        pass
+
+    def modificarUsuario(self):
+        pass
 
     def cargarCampo(self):
         valores = cargar(
@@ -382,10 +415,11 @@ class Main:
 
     def cargarSeguimiento(self):
         valores = cargar(
-            ["id_segui", "id_anim_seg", "estado_desc", "fec_estimada"],
+            ["id_segui", "id_anim_seg", "fec_seg", "estado_desc", "fec_estimada"],
             [
                 "el código de seguimiento (opcional)",
                 "el código del animal",
+                "la fecha del seguimiento",
                 "la descripción",
                 "la fecha estimada de nacimiento",
             ],
@@ -453,13 +487,17 @@ class Main:
         id = self.validarEnTabla("animal", "id_anim")
 
         valores = self.leer(
-            "select id_segui, estado_desc, fec_estimada from seguimiento where id_anim_seg = {}".format(
+            "select id_segui, fec_seg, estado_desc, fec_estimada from seguimiento where id_anim_seg = {}".format(
                 id
             )
         )
+        if not valores:
+            print(f"No hay seguimientos registrados para el animal {id}")
+            return
+        print(f"\nAnimal: {id}")
+
         for linea in valores:
-            print(f"\nFecha: {linea['fec_seg']}")
-            print(f"Animal: {linea['id_anim_seg']}")
+            print(f"Fecha: {linea['fec_seg']}")
             if linea["estado_desc"]:
                 print(f"Descripción: {linea['estado_desc']}")
             else:
@@ -469,8 +507,6 @@ class Main:
                 print(f"Fecha estimada de parición: {linea['fec_estimada']}")
             else:
                 print("No hay fecha de parición estimada")
-
-        print("Los valores del seguimiento son", valores)
 
     def __init__(self, seEjectua=True) -> None:
         self.db = Db()
