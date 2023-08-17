@@ -608,5 +608,12 @@ class Main:
 # Cambiar todos los animales un potrero a otro
 # categorías vientre, vaquita 1 año, 2 años, ternero y toro
 # Subcategorías de vientre: 1ra parición, 2da parición, vaca, y2 descarte
+# Carga máxima por potrero
+
+# Carga y peso
+# Cada animal come 3% del peso
+# Cómo hago eso? 1m cuadrado es 1kg de materia seca? cuanto pesa cada vaca? solo tengo el peso inicial
+# Hice un modelito burdo como para tener algo, le sumo 25kg por més
+
 main = Main(False)
 main.menu.iniciar()
