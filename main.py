@@ -788,6 +788,8 @@ class Main:
 
 
 # Validar existencias de parcelas, campos y port
+# Validar ingreso de información repetida
+# Validar ingreso de fechas correctas
 
 # Observaciones mías:
 # Cómo sé la cantidad de vacas por campo, potrero, y parcela?
