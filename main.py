@@ -2,6 +2,8 @@ from db import Db
 from menu import Menu
 import datetime
 
+kilosPorMes = 25
+
 nuleables = [
     "id_anim",
     "id_padre",
@@ -256,7 +258,19 @@ def tabla(datos):
     # TODO: Acá hago el cálculo de la carga de animales
     print(datos[0].keys())
     if "ancho" in datos[0].keys():
-        print("Hay anchos")
+        sup = datos[0]["ancho"] * datos[0]["largo"]
+        print(f"La superficie es {sup}")
+        ahora = datetime.now()
+
+        totalPeso = 0
+
+        for i in datos:
+            fecha = datetime(i["fec_nac"])
+            meses = ahora.year * 12 + ahora.month - (fecha.year * 12 + fecha.month)
+
+            totalPeso = meses * kilosPorMes
+
+        print(f"Y en total las vacas comen {totalPeso * 0.03}kg por día")
 
 
 class Main:
@@ -356,8 +370,8 @@ class Main:
                 )
             )[0],
         )
-
-        self.modificar("animal", datos, "id_anim", idObj)
+        if datos:
+            self.modificar("animal", datos, "id_anim", idObj)
 
     def modificarSeguimiento(self):
         idObj = self.validarEnTabla("seguimiento", "id_segui")
@@ -375,7 +389,8 @@ class Main:
                 )
             )[0],
         )
-        self.modificar("seguimiento", datos, "id_seg", idObj)
+        if datos:
+            self.modificar("seguimiento", datos, "id_seg", idObj)
 
     def modificarCampo(self):
         idObj = self.validarEnTabla("campo", "id_camp")
@@ -407,8 +422,8 @@ class Main:
                 )
             )[0],
         )
-
-        self.modificar("campo", datos, "id_camp", idObj)
+        if datos:
+            self.modificar("campo", datos, "id_camp", idObj)
 
     def modificarPotrero(self):
         idObj = self.validarEnTabla("potrero", "id_pot")
@@ -436,8 +451,8 @@ class Main:
                 )
             )[0],
         )
-
-        self.modificar("potrero", datos, "id_pot", idObj)
+        if datos:
+            self.modificar("potrero", datos, "id_pot", idObj)
 
     def modificarParcela(self):
         idObj = self.validarEnTabla("parcela", "id_parc")
@@ -457,7 +472,8 @@ class Main:
             )[0],
         )
 
-        self.modificar("parcela", datos, "id_parc", idObj)
+        if datos:
+            self.modificar("parcela", datos, "id_parc", idObj)
 
     def modificarUsuario(self):
         idObj = self.validarEnTabla("cliente", "id_cli")
@@ -476,8 +492,8 @@ class Main:
                 )
             )[0],
         )
-
-        self.modificar("cliente", datos, "id_cli", idObj)
+        if datos:
+            self.modificar("cliente", datos, "id_cli", idObj)
 
     def cargarCampo(self):
         valores = cargar(
@@ -776,8 +792,8 @@ class Main:
 # Observaciones mías:
 # Cómo sé la cantidad de vacas por campo, potrero, y parcela?
 # A cada vaca le doy una parcela
-
 # le agrego parcela a la vaca
+
 # Qué valores se pueden modificar?
 # Yo dejo que se modifique todo por ahora
 
@@ -785,6 +801,8 @@ class Main:
 # Para qué cargo los usuarios? se van a usar en algún momento?
 
 # La carga animal es el máximo de animales? o los que hay ahora? yo lo tomaría como máximo
+
+# Cuanta materia seca se produce por día? mes?  cuanto pesa una vaca?
 
 # __________________________________________
 # De lo que chusmié en otros trabajos
