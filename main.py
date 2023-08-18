@@ -1,6 +1,6 @@
 from db import Db
 from menu import Menu
-
+import datetime
 
 nuleables = [
     "id_anim",
@@ -87,7 +87,23 @@ diccTitulos = {
     "id_anim_seg": "Animal del seguimiento",
     "fec_estimada": "Fecha estimada de parición",
     "estado_desc": "Descripción del estado",
+    "potreros": "N° de potreros",
+    "parcelas": "N° de parcelas",
+    "animales": "N° de animales",
 }
+
+
+def confirmar():
+    while True:
+        print("Confirma la operación?")
+        v = input("Si, No: ").lower().strip()
+
+        if v in ("si", "s", "1"):
+            return True
+        elif v in ("no", "n", 0):
+            return False
+
+        print("No valido, reintente...")
 
 
 def ingresar(paraQue, variable, datoViejo=None):
@@ -183,33 +199,34 @@ def cargar(datos, textos, datos_viejos=None):
 
     for key, value in diccionario.items():
         if value:
-            print(f"{diccTitulos[key]}: {value}")
+            if key in rangos:
+                print(f"{diccTitulos[key]}: {rangos[key][value-1]}")
+
+            else:
+                print(f"{diccTitulos[key]}: {value}")
+
         else:
             print(f"{diccTitulos[key]}: -")
     print("")
-    while True:
-        print("Confirma estos datos?")
-        v = input("Si, No: ").lower().strip()
 
-        if v in ("si", "s", "1"):
-            return diccionario
-        elif v in ("no", "n", 0):
-            return
-
-        print("No valido, reintente...")
+    if confirmar():
+        return diccionario
+    else:
+        return
 
 
 def tabla(datos):
-    print("Datos sobn", datos)
-
     if not datos:
-        print("No hay registros para mostrar")
+        print("No hay registros para mostrar...")
         return
     anchos = []
     header = ""
 
+    # TODO: ver que hacemos con el ancho
+    # podría ver de aprender a manejar curses pero ya fue
+
     for dato in datos[0].keys():
-        dt = f"   {diccTitulos[dato]}   "
+        dt = f" {diccTitulos[dato]} "
 
         anchos.append(len(dt))
 
@@ -223,19 +240,37 @@ def tabla(datos):
 
         for i, dato in enumerate(linea):
             # Si la key está dentro de los rangos, en vez del dato presento el valor asociado
-            # Se puede expandir para otros tipos de dato
+            # Se puede expandir para otros tipos de dato mas o menos fácil
             # print(f"dato {dato} i {i} keys[i] {keys[i]}")
-            # if keys[i] in rangos:
-            #     lineaTexto += str(rangos[keys[i]][int(dato) - 1]).center(anchos[i])
-            # else:
-            lineaTexto += str(dato).center(anchos[i])
+            if keys[i] in rangos:
+                lineaTexto += str(rangos[keys[i]][int(dato) - 1]).center(anchos[i])
+            elif dato == None:
+                lineaTexto += "-".center(anchos[i])
+            else:
+                lineaTexto += str(dato).center(anchos[i])
 
         print(lineaTexto)
+    print("")
+    print(f"Total: {len(datos)}")
+
+    # TODO: Acá hago el cálculo de la carga de animales
+    print(datos[0].keys())
+    if "ancho" in datos[0].keys():
+        print("Hay anchos")
 
 
 class Main:
     def validarEnTabla(self, tabla, idN):
         print("Ingrese la ID para seleccionar")
+
+        # Esto lo agregué después así que no es tan eficiente
+        # Hace las búsquedas dos veces y no se
+        disp = self.leer("select {} from {}".format(idN, tabla))
+
+        print("IDs disponibles:")
+        print(*[str(d[idN]) for d in disp], sep=", ")
+        # Magia kjasd para hacer menos código
+
         print("Ingrese 0 para cancelar")
         while True:
             valor = input("Valor: ")
@@ -322,6 +357,8 @@ class Main:
             )[0],
         )
 
+        self.modificar("animal", datos, "id_anim", idObj)
+
     def modificarSeguimiento(self):
         idObj = self.validarEnTabla("seguimiento", "id_segui")
 
@@ -338,15 +375,109 @@ class Main:
                 )
             )[0],
         )
+        self.modificar("seguimiento", datos, "id_seg", idObj)
+
+    def modificarCampo(self):
+        idObj = self.validarEnTabla("campo", "id_camp")
+
+        datos = cargar(
+            [
+                "fec_alta",
+                "tipo_campo",
+                "ancho",
+                "largo",
+                "nombre",
+                "propietario",
+                "telefono",
+                "email",
+            ],
+            [
+                "la nueva fecha de alta",
+                "el nuevo tipo de campo",
+                "el nuevo ancho",
+                "el nuevo largo",
+                "el nuevo nombre",
+                "el nuevo propietario",
+                "el nuevo teléfono",
+                "el nuevo E-Mail",
+            ],
+            self.leer(
+                "select fec_alta, tipo_campo, ancho, largo, nombre, propietario, telefono, email from campo where id_camp = {}".format(
+                    idObj
+                )
+            )[0],
+        )
+
+        self.modificar("campo", datos, "id_camp", idObj)
 
     def modificarPotrero(self):
-        pass
+        idObj = self.validarEnTabla("potrero", "id_pot")
+
+        datos = cargar(
+            [
+                "id_camp_pot",
+                "ancho",
+                "largo",
+                "car_animal",
+                "vol_pasto_n",
+                "vol_pasto_l",
+            ],
+            [
+                "el nuevo campo",
+                "el nuevo ancho",
+                "el nuevo largo",
+                "la nueva carga animal",
+                "el nuevo v. de pasto natural",
+                "el nuevo v. de pasto implantado",
+            ],
+            self.leer(
+                "select id_camp_pot, ancho, largo, car_animal, vol_pasto_n, vol_pasto_l from potrero where id_pot = {}".format(
+                    idObj
+                )
+            )[0],
+        )
+
+        self.modificar("potrero", datos, "id_pot", idObj)
 
     def modificarParcela(self):
-        pass
+        idObj = self.validarEnTabla("parcela", "id_parc")
+
+        datos = cargar(
+            ["id_pot_parc", "observaciones", "ancho", "largo"],
+            [
+                "el nuevo potrero",
+                "las nuevas observaciones",
+                "el nuevo ancho",
+                "el nuevo largo",
+            ],
+            self.leer(
+                "select id_pot_parc, observaciones, ancho, largo from parcela where id_parc = {}".format(
+                    idObj
+                )
+            )[0],
+        )
+
+        self.modificar("parcela", datos, "id_parc", idObj)
 
     def modificarUsuario(self):
-        pass
+        idObj = self.validarEnTabla("cliente", "id_cli")
+
+        datos = cargar(
+            ["nombre", "apellido", "telefono", "email"],
+            [
+                "el nuevo nombre",
+                "el nuevo apellido",
+                "el nuevo teléfono",
+                "el nuevo E-Mail",
+            ],
+            self.leer(
+                "select nombre, apellido, telefono, email from cliente where id_cli = {}".format(
+                    idObj
+                )
+            )[0],
+        )
+
+        self.modificar("cliente", datos, "id_cli", idObj)
 
     def cargarCampo(self):
         valores = cargar(
@@ -354,21 +485,23 @@ class Main:
                 "id_camp",
                 "fec_alta",
                 "tipo_campo",
+                "ancho",
+                "largo",
                 "nombre",
                 "propietario",
                 "telefono",
                 "email",
-                "hectareas",
             ],
             [
                 "el código del campo (Opcional)",
                 "la fecha de inicio de producción",
                 "el tipo de campo",
+                "el ancho del campo",
+                "el largo del campo",
                 "el nombre del campo",
                 "el propietario",
                 "el telefono asociado",
                 "el e-mail asociado",
-                "la cantidad de hectáreas",
             ],
         )
 
@@ -402,11 +535,19 @@ class Main:
 
     def cargarParcela(self):
         valores = cargar(
-            ["id_parc", "id_pot_parc", "observaciones"],
+            [
+                "id_parc",
+                "id_pot_parc",
+                "observaciones",
+                "ancho",
+                "largo",
+            ],
             [
                 "el código de la parcela (opcional)",
                 "el potrero donde está",
                 "otras observaciones (opcional)",
+                "el ancho de la parcela",
+                "el largo de la parcela",
             ],
         )
 
@@ -429,44 +570,46 @@ class Main:
             self.cargar("seguimiento", [*valores.values()])
 
     def leerVacasCampo(self):
-        campo = input("Ingrese el campo para buscar: ")
-        tabla(
-            self.leer(
-                """select animal.* from animal
-        join parcela on id_parc = parc
-        join potrero on id_pot = id_pot_parc
-        join campo on id_camp = id_camp_pot
-        where id_camp = {}""".format(
-                    campo
+        campo = self.validarEnTabla("campo", "id_camp")
+        if campo:
+            tabla(
+                self.leer(
+                    """select animal.*, campo.ancho as ancho, campo.largo as largo from animal
+                    join parcela on id_parc = parc
+                    join potrero on id_pot = id_pot_parc
+                    join campo on id_camp = id_camp_pot
+                    where id_camp = {}""".format(
+                        campo
+                    )
                 )
             )
-        )
 
     def leerVacasPotrero(self):
-        pot = input("Ingrese el potrero para buscar: ")
-        tabla(
-            self.leer(
-                """select animal.* from animal
-        join parcela on id_parc = parc
-        join potrero on id_pot = id_pot_parc
-        where id_pot = {}""".format(
-                    pot
+        pot = self.validarEnTabla("potrero", "id_pot")
+        if pot:
+            tabla(
+                self.leer(
+                    """select animal.*, potrero.ancho as ancho, potrero.largo as largo from animal
+                    join parcela on id_parc = parc
+                    join potrero on id_pot = id_pot_parc
+                    where id_pot = {}""".format(
+                        pot
+                    )
                 )
             )
-        )
 
     def leerVacasParcela(self):
-        parcela = input("Ingrese la parcela para buscar: ")
-        tabla(
-            self.leer(
-                """select animal.* from animal
-        join parcela on id_parc = parc
-        join potrero on id_pot = id_pot_parc
-        where id_pot = {}""".format(
-                    parcela
+        parcela = self.validarEnTabla("parcela", "id_parc")
+        if parcela:
+            tabla(
+                self.leer(
+                    """select animal.*, parcela.ancho, parcela.largo from animal
+                    join parcela on id_parc = parc
+                    where id_parc = {}""".format(
+                        parcela
+                    )
                 )
             )
-        )
 
     def cargarUsuario(self):
         valores = cargar(
@@ -484,17 +627,17 @@ class Main:
             self.cargar("cliente", [*valores.values()])
 
     def leerSeguimientos(self):
-        id = self.validarEnTabla("animal", "id_anim")
+        idObj = self.validarEnTabla("animal", "id_anim")
 
         valores = self.leer(
             "select id_segui, fec_seg, estado_desc, fec_estimada from seguimiento where id_anim_seg = {}".format(
-                id
+                idObj
             )
         )
         if not valores:
-            print(f"No hay seguimientos registrados para el animal {id}")
+            print(f"No hay seguimientos registrados para el animal {idObj}")
             return
-        print(f"\nAnimal: {id}")
+        print(f"\nAnimal: {idObj}")
 
         for linea in valores:
             print(f"Fecha: {linea['fec_seg']}")
@@ -528,40 +671,50 @@ class Main:
                     },
                     "Cargar animal": self.cargarVaca,
                     "Modificar animal": self.modificarVaca,
-                    "Eliminar animal": lambda: print("Eliminando un animal"),
+                    "Eliminar animal": lambda: self.eliminar("animal", "id_anim"),
                 },
                 "Seguimientos": {
                     "Listar seguimientos": self.leerSeguimientos,
                     "Cargar seguimiento": self.cargarSeguimiento,
                     "Modificar seguimiento": self.modificarSeguimiento,
-                    "Eliminar seguimiento": lambda: print("Eliminar seguimiento"),
+                    "Eliminar seguimiento": lambda: self.eliminar(
+                        "seguimiento", "id_seg"
+                    ),
                 },
                 "Campos, potreros y parcelas": {
                     "Campos": {
                         "Listar Campos": lambda: self.funcionLeer(
-                            "select * from campo"
+                            """select campo.*, count(pot.id_pot) as potreros, count(par.id_parc) as parcelas, count(a.id_anim) as animales
+                            from campo
+                            left join potrero as pot
+                            on id_camp_pot = id_camp
+                            left join parcela as par
+                            on id_pot_parc = id_pot
+                            left join animal as a
+                            on a.parc = id_parc
+                            group by id_camp"""
                         ),
                         "Cargar Campos": self.cargarCampo,
-                        "Modificar Campos": lambda: self.funcionLeer(
-                            "select * from potrero"
-                        ),
-                        "Eliminar Campos": lambda: print("Eliminando Campos"),
+                        "Modificar Campos": self.modificarCampo,
+                        "Eliminar Campos": lambda: self.eliminar("campo", "id_camp"),
                     },
                     "Potreros": {
                         "Listar Potreros": lambda: self.funcionLeer(
-                            "select * from potrero"
+                            "select potrero.*, count(id_parc) as parcelas, count(id_anim) as animales from potrero left join parcela on id_pot_parc = id_pot lef join animal on parc = id_parc group by id_pot"
                         ),
                         "Cargar Potreros": self.cargarPotrero,
                         "Modificar Potreros": self.modificarPotrero,
-                        "Eliminar Potreros": lambda: print("Eliminando Potreros"),
+                        "Eliminar Potreros": lambda: self.eliminar("potrero", "id_pot"),
                     },
                     "Parcelas": {
                         "Listar Parcelas": lambda: self.funcionLeer(
-                            "select parcela.*, id_pot, id_pot_camp from parcela join potrero on id_pot = id_pot_parc"
+                            "select parcela.*, id_camp_pot, count(id_anim) as animales from parcela left join potrero on id_pot = id_pot_parc left join animal on parc = id_parc group by id_parc"
                         ),
                         "Cargar Parcelas": self.cargarParcela,
                         "Modificar Parcelas": self.modificarParcela,
-                        "Eliminar Parcelas": lambda: print("Eliminando Parcelas"),
+                        "Eliminar Parcelas": lambda: self.eliminar(
+                            "parcela", "id_parc"
+                        ),
                     },
                 },
                 "Usuarios": {
@@ -570,7 +723,7 @@ class Main:
                     ),
                     "Carga de usuarios": self.cargarUsuario,
                     "Modificación de usuarios": self.modificarUsuario,
-                    "Baja de usuarios": lambda: print("Baja de usuarios"),
+                    "Baja de usuarios": lambda: self.eliminar("cliente", "id_cli"),
                 },
             }
         }
@@ -590,30 +743,60 @@ class Main:
         signos = ("?, " * (len(datos) - 1)) + "?"
         # Crea un string "(?, ?, ?)" con la cantidad de signos necesitada por la consulta
 
-        self.db.insert("insert into {} values ({})".format(tabla, signos), datos)
+        if id:
+            self.db.ejecutar("update {} values ({})".format(tabla, signos), datos)
+        else:
+            self.db.ejecutar("insert into {} values ({})".format(tabla, signos), datos)
         print("\nDatos cargados correctamente...")
-        pass
+
+    def modificar(self, tabla: str, datos, idN: str, id: int):
+        query = "UPDATE {} SET".format(tabla)
+
+        for key in datos.keys():
+            query += f" {key} = ?,"
+
+        query = query[:-1]  # Le saco la última coma que no va
+
+        query += f" WHERE {idN} = {id}"
+
+        self.db.ejecutar(query, datos.values())
+
+    def eliminar(self, tabla: str, idN: str) -> None:
+        id = self.validarEnTabla(tabla, idN)
+        if id:
+            if confirmar():
+                # Validar que no elimine nada que lo deje huérfano
+                self.db.ejecutar("DELETE FROM {} where {} = {}".format(tabla, idN, id))
+            else:
+                print("No se eliminaron datos")
 
 
-# Validar existencias de parcelas, campos y
+# Validar existencias de parcelas, campos y port
 
 # Observaciones mías:
 # Cómo sé la cantidad de vacas por campo, potrero, y parcela?
+# A cada vaca le doy una parcela
+
 # le agrego parcela a la vaca
 # Qué valores se pueden modificar?
+# Yo dejo que se modifique todo por ahora
 
-# TODO: Hacer las IDs automáticas por defecto pero no se si sí o si no
+# Que es pasto N y pasto I? para que se usa?
+# Para qué cargo los usuarios? se van a usar en algún momento?
 
+# La carga animal es el máximo de animales? o los que hay ahora? yo lo tomaría como máximo
+
+# __________________________________________
 # De lo que chusmié en otros trabajos
-# Cambiar todos los animales un potrero a otro
+# Cambiar todos los animales un potrero a otro, por ahora se hace animal por animal eso
+
 # categorías vientre, vaquita 1 año, 2 años, ternero y toro
 # Subcategorías de vientre: 1ra parición, 2da parición, vaca, y2 descarte
-# Carga máxima por potrero
 
 # Carga y peso
 # Cada animal come 3% del peso
 # Cómo hago eso? 1m cuadrado es 1kg de materia seca? cuanto pesa cada vaca? solo tengo el peso inicial
-# Hice un modelito burdo como para tener algo, le sumo 25kg por més
+# Hice un modelito burdo como para tener algo, le sumo 25kg por més de vida a la vaca
 
 main = Main(False)
 main.menu.iniciar()

@@ -42,11 +42,13 @@ class Db:
                 id_camp INTEGER PRIMARY KEY AUTOINCREMENT,
                 fec_alta DATE NOT NULL,
                 tipo_campo INTEGER NOT NULL,
+                ancho FLOAT NOT NULL CHECK(ancho > 0),
+                largo FLOAT NOT NULL CHECK(largo > 0),
                 nombre VARCHAR2 NOT NULL,
                 propietario VARCHAR2 NOT NULL,
                 telefono VARCHAR2 NOT NULL,
-                email VARCHAR2 NOT NULL,
-                hectareas FLOAT NOT NULL
+                email VARCHAR2 NOT NULL
+                
             )"""
         )
 
@@ -69,6 +71,8 @@ class Db:
                 id_parc INTEGER PRIMARY KEY AUTOINCREMENT,
                 id_pot_parc INTEGER NOT NULL,
                 observaciones TEXT NULL,
+                ancho FLOAT NOT NULL CHECK(ancho > 0),
+                largo FLOAT NOT NULL CHECK(largo > 0),
                 FOREIGN KEY (id_pot_parc) REFERENCES potrero (id_pot)
 
             )"""
@@ -93,7 +97,10 @@ class Db:
         cur.close()
         return data
 
-    def insert(self, query: str, datos):
-        self.cur.execute(query, datos)
+    def ejecutar(self, query: str, datos=None):
+        if datos:
+            self.cur.execute(query, list(datos))
+        else:
+            self.cur.execute(query)
         self.conn.commit()
         # Se podría pedir confirmación antes del commit pero no me dá el tiempo ahora
