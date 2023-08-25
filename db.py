@@ -48,7 +48,7 @@ class Db:
                 propietario VARCHAR2 NOT NULL,
                 telefono VARCHAR2 NOT NULL,
                 email VARCHAR2 NOT NULL
-                
+
             )"""
         )
 
@@ -91,7 +91,6 @@ class Db:
 
     def fetch(self, query):
         cur = self.conn.cursor()
-        print("Ejecutando ", query)
         cur.execute(query)
         data = cur.fetchall()
         cur.close()

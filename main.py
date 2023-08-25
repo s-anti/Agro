@@ -55,16 +55,16 @@ textos = [
 # valores = modificar
 # if valores self.modificar
 diccTitulos = {
-    "id_anim": "ID Animal",
-    "id_padre": "ID Padre",
-    "id_madre": "ID Madre",
+    "id_anim": "Código animal",
+    "id_padre": "Código padre",
+    "id_madre": "Código madre",
     "fec_nac": "Nacimiento",
     "peso_nac": "Peso nacimiento",
     "sexo": "Sexo",
     "cat": "Categoría",
     "sub_cat": "Subcategoría",
     "parc": "Parcela",
-    "id_camp": "ID Campo",
+    "id_camp": "Código campo",
     "fec_alta": "Fecha de alta",
     "tipo_campo": "Tipo",
     "nombre": "Nombre",
@@ -72,17 +72,17 @@ diccTitulos = {
     "telefono": "Teléfono",
     "email": "E-Mail",
     "hectareas": "Hectáreas",
-    "id_pot": "ID Potrero",
-    "id_camp_pot": "ID Campo",
+    "id_pot": "Código potrero",
+    "id_camp_pot": "Código campo",
     "ancho": "Ancho",
     "largo": "Largo",
     "car_animal": "Carga animal",
     "vol_pasto_n": "Volumen pasto N",
     "vol_pasto_l": "Volumen pasto L",
-    "id_parc": "ID Parcela",
-    "id_pot_parc": "ID Potrero",
+    "id_parc": "Código parcela",
+    "id_pot_parc": "Código potrero",
     "observaciones": "Observaciones",
-    "id_cli": "ID Cliente",
+    "id_cli": "Código ciente",
     "apellido": "Apellido",
     "fec_seg": "Fecha del seguimiento",
     "id_segui": "Código de seguimiento",
@@ -256,7 +256,6 @@ def tabla(datos):
     print(f"Total: {len(datos)}")
 
     # TODO: Acá hago el cálculo de la carga de animales
-    print(datos[0].keys())
     if "ancho" in datos[0].keys():
         sup = datos[0]["ancho"] * datos[0]["largo"]
         print(f"La superficie es {sup}")
@@ -275,13 +274,13 @@ def tabla(datos):
 
 class Main:
     def validarEnTabla(self, tabla, idN):
-        print("Ingrese la ID para seleccionar")
+        print("Ingrese el código para buscar")
 
         # Esto lo agregué después así que no es tan eficiente
         # Hace las búsquedas dos veces y no se
         disp = self.leer("select {} from {}".format(idN, tabla))
 
-        print("IDs disponibles:")
+        print("Códigos disponibles:")
         print(*[str(d[idN]) for d in disp], sep=", ")
         # Magia kjasd para hacer menos código
 
@@ -302,7 +301,7 @@ class Main:
                     if r:
                         return valor
                     else:
-                        print("No se encuentra esa ID")
+                        print("No se encuentra ese código")
                 else:
                     print("Ingrese un positivo")
             else:
@@ -590,7 +589,8 @@ class Main:
         if campo:
             tabla(
                 self.leer(
-                    """select animal.*, campo.ancho as ancho, campo.largo as largo from animal
+                    """select animal.*, id_pot, campo.ancho as ancho, campo.largo as largo
+                    from animal
                     join parcela on id_parc = parc
                     join potrero on id_pot = id_pot_parc
                     join campo on id_camp = id_camp_pot
@@ -605,7 +605,7 @@ class Main:
         if pot:
             tabla(
                 self.leer(
-                    """select animal.*, potrero.ancho as ancho, potrero.largo as largo from animal
+                    """select animal.*, id_pot, potrero.ancho as ancho, potrero.largo as largo from animal
                     join parcela on id_parc = parc
                     join potrero on id_pot = id_pot_parc
                     where id_pot = {}""".format(
@@ -619,8 +619,9 @@ class Main:
         if parcela:
             tabla(
                 self.leer(
-                    """select animal.*, parcela.ancho, parcela.largo from animal
+                    """select animal.*, id_pot, parcela.ancho, parcela.largo from animal
                     join parcela on id_parc = parc
+                    join potrero on id_pot = id_pot_parc
                     where id_parc = {}""".format(
                         parcela
                     )
@@ -683,7 +684,9 @@ class Main:
                         "Por campo": self.leerVacasCampo,
                         "Por potrero": self.leerVacasPotrero,
                         "Por parcela": self.leerVacasParcela,
-                        "Todos": lambda: self.funcionLeer("select * from animal"),
+                        "Todos": lambda: self.funcionLeer(
+                            "select animal.*, potrero.id_pot as id_pot from animal join parcela on id_parc = parc join potrero on id_pot = id_pot_parc   "
+                        ),
                     },
                     "Cargar animal": self.cargarVaca,
                     "Modificar animal": self.modificarVaca,
@@ -735,7 +738,7 @@ class Main:
                 },
                 "Usuarios": {
                     "Listado de usuarios": lambda: self.funcionLeer(
-                        "select * from usuario"
+                        "select * from cliente"
                     ),
                     "Carga de usuarios": self.cargarUsuario,
                     "Modificación de usuarios": self.modificarUsuario,
