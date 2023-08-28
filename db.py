@@ -84,7 +84,7 @@ class Db:
                 id_anim_seg INTEGER NOT NULL,
                 fec_seg DATE NOT NULL,
                 estado_desc TEXT NOT NULL,
-                fec_estimada DATE NOT NULL,
+                fec_estimada DATE,
                 FOREIGN KEY (id_anim_seg) REFERENCES animal (id_anim)
             )"""
         )

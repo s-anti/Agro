@@ -158,9 +158,9 @@ def ingresar(
             )
         ):
             posibles.append(i[idsIngreso[variable][1]])
-            txt += str(i[idsIngreso[variable][1]]) + ","
+            txt += str(i[idsIngreso[variable][1]]) + ", "
 
-        print(txt[:-1])
+        print(txt[:-2])
 
     while True:
         valor = input("Valor: ")
@@ -178,18 +178,24 @@ def ingresar(
         else:
             if variable in fechas:
                 valor = valor.strip().lower()
-                ano = valor[:4]
-                mes = valor[5:]
+                v = valor
+                f = True
+                if len(valor) == 10:
+                    partes = valor.split("-" if "-" in valor else "/")
+                    if len(partes) == 3:
+                        ano, mes, dia = partes
+                        if ano.isdigit() and mes.isdigit() and dia.isdigit():
+                            ano = int(ano)
+                            mes = int(mes)
+                            dia = int(dia)
 
-                if mes.isdigit() and ano.isdigit():
-                    ano = int(ano)
-                    mes = int(mes)
-
-                    if 1900 < ano < int(datetime.datetime.now().year):
-                        if 0 < mes < 13:
-                            return valor
-
-                print("Ingrese una fecha válida")
+                            if (
+                                1900 <= ano <= 9999
+                                and 1 <= mes <= 12
+                                and 1 <= dia <= 31
+                            ):
+                                return v
+                print("Ingrese una fecha correcta...")
             elif variable in decimales:
                 try:
                     valor = float(valor)
@@ -341,7 +347,7 @@ class Main:
 
             if valor.isnumeric():
                 if int(valor) == 0:
-                    return
+                    return False
                 elif int(valor) > 0:
                     r = self.leer(
                         "select * from {} where {} = {}".format(tabla, idN, valor)
@@ -373,7 +379,7 @@ class Main:
                 "el código de la vaca (Opcional)",
                 "el código del padre (Opcional)",
                 "el código de la madre",
-                "la fecha de nacimiento",
+                "la fecha de nacimiento (AAAA-MM-DD)",
                 "el peso al nacer",
                 "saber si es macho o hembra",
                 "su categoría",
@@ -394,6 +400,8 @@ class Main:
     def modificarVaca(self):
         # TODO: ver que hago con esto, que valores se puede modificar y que nop
         idObj = self.validarEnTabla("animal", "id_anim")
+        if not idObj:
+            return
 
         datos = cargar(
             [
@@ -409,7 +417,7 @@ class Main:
             [
                 "la nueva ID del padre",
                 "la nueva ID de la madre",
-                "la nueva fecha de nacimiento",
+                "la nueva fecha de nacimiento (AAAA-MM-DD)",
                 "el nuevo peso de nacimiento",
                 "el nuevo sexo",
                 "la nueva categoría",
@@ -428,13 +436,15 @@ class Main:
 
     def modificarSeguimiento(self):
         idObj = self.validarEnTabla("seguimiento", "id_segui")
+        if not idObj:
+            return
 
         datos = cargar(
             ["id_anim_seg", "estado_desc", "fec_estimada"],
             [
                 "el código del nuevo animal",
                 "la nueva descripción",
-                "la nueva fecha estimada de nacimiento",
+                "la nueva fecha estimada de nacimiento (AAAA-MM-DD)",
             ],
             self,
             self.leer(
@@ -448,6 +458,8 @@ class Main:
 
     def modificarCampo(self):
         idObj = self.validarEnTabla("campo", "id_camp")
+        if not idObj:
+            return
 
         datos = cargar(
             [
@@ -461,7 +473,7 @@ class Main:
                 "email",
             ],
             [
-                "la nueva fecha de alta",
+                "la nueva fecha de alta (AAAA-MM-DD)",
                 "el nuevo tipo de campo",
                 "el nuevo ancho",
                 "el nuevo largo",
@@ -482,6 +494,8 @@ class Main:
 
     def modificarPotrero(self):
         idObj = self.validarEnTabla("potrero", "id_pot")
+        if not idObj:
+            return
 
         datos = cargar(
             [
@@ -512,6 +526,8 @@ class Main:
 
     def modificarParcela(self):
         idObj = self.validarEnTabla("parcela", "id_parc")
+        if not idObj:
+            return
 
         datos = cargar(
             ["id_pot_parc", "observaciones", "ancho", "largo"],
@@ -534,7 +550,8 @@ class Main:
 
     def modificarUsuario(self):
         idObj = self.validarEnTabla("cliente", "id_cli")
-
+        if not idObj:
+            return
         datos = cargar(
             ["nombre", "apellido", "telefono", "email"],
             [
@@ -568,7 +585,7 @@ class Main:
             ],
             [
                 "el código del campo (Opcional)",
-                "la fecha de inicio de producción",
+                "la fecha de inicio de producción (AAAA-MM-DD)",
                 "el tipo de campo",
                 "el ancho del campo",
                 "el largo del campo",
@@ -637,9 +654,9 @@ class Main:
             [
                 "el código de seguimiento (opcional)",
                 "el código del animal",
-                "la fecha del seguimiento",
+                "la fecha del seguimiento (AAAA-MM-DD)",
                 "la descripción",
-                "la fecha estimada de nacimiento",
+                "la fecha estimada de nacimiento (AAAA-MM-DD)",
             ],
             self,
         )
@@ -709,6 +726,9 @@ class Main:
 
     def leerSeguimientos(self):
         idObj = self.validarEnTabla("animal", "id_anim")
+
+        if not idObj:
+            return
 
         valores = self.leer(
             "select id_segui, fec_seg, estado_desc, fec_estimada from seguimiento where id_anim_seg = {}".format(
@@ -808,6 +828,7 @@ class Main:
                     "Modificación de usuarios": self.modificarUsuario,
                     "Baja de usuarios": lambda: self.eliminar("cliente", "id_cli"),
                 },
+                "Cargar datos de prueba": self.cargarDemo,
             }
         }
 
@@ -822,12 +843,13 @@ class Main:
     def funcionLeer(self, query):
         tabla(self.leer(query))
 
-    def cargar(self, tabla: str, datos: list) -> None:
+    def cargar(self, tabla: str, datos: list, msjCorrecto=True) -> None:
         signos = ("?, " * (len(datos) - 1)) + "?"
         # Crea un string "(?, ?, ?)" con la cantidad de signos necesitada por la consulta
 
         self.db.ejecutar("insert into {} values ({})".format(tabla, signos), datos)
-        print("\nDatos cargados correctamente...")
+        if msjCorrecto:
+            print("\nDatos cargados correctamente...")
 
     def modificar(self, tabla: str, datos, idN: str, id: int):
         query = "UPDATE {} SET".format(tabla)
@@ -849,6 +871,58 @@ class Main:
                 self.db.ejecutar("DELETE FROM {} where {} = {}".format(tabla, idN, id))
             else:
                 print("No se eliminaron datos")
+
+    def cargarDemo(self):
+        # Las id las asigno yo después
+        ejemplos = {
+            "cliente": [
+                ["Agustín", "Rodriguez", "+54 9 11 2345 6789", "agustin@gmail.com"],
+                ["Leonardo", "Fernández", "+54 9 11 9876 5432", "leonardo@gmail.com"],
+            ],
+            "animal": [
+                [None, 1, "2023-01-15", 3.2, 1, 0, 0, 1],
+                [None, 1, "2023-02-10", 4.5, 0, 1, 1, 2],
+                [1, 2, "2023-03-20", 2.8, 1, 0, 0, 1],
+                [1, 2, "2023-04-05", 5.1, 1, 2, 1, 3],
+                [None, 2, "2023-05-18", 3.9, 0, 1, 2, 2],
+                [None, 1, "2023-06-07", 4.2, 1, 0, 0, 1],
+                [3, 4, "2023-07-25", 3.0, 0, 1, 0, 3],
+                [3, 4, "2023-08-12", 5.3, 1, 2, 1, 2],
+                [None, 2, "2023-09-30", 3.8, 0, 1, 2, 1],
+                [None, 1, "2023-10-22", 4.7, 1, 0, 0, 3],
+            ],
+            "campo": [
+                [
+                    "2020-08-01",
+                    1,
+                    345,
+                    550,
+                    "Campo por defecto",
+                    "Propietario por defecto",
+                    "+54 3541 00-0000",
+                    "email@defecto.com",
+                ],
+            ],
+            "potrero": [[1, 100, 150, 20, 500, 750], [1, 80, 120, 15, 400, 600]],
+            "parcela": [
+                [1, "Parcela A", 30, 40],
+                [2, "Parcela B", 25, 35],
+                [1, "Parcela C", 20, 30],
+            ],
+            "seguimiento": [
+                [1, "2023-02-01", "Preñada", "2023-04-15"],
+                [2, "2023-03-10", "Normal", None],
+                [3, "2023-04-20", "Preñada", "2023-06-25"],
+            ],
+        }
+
+        for tabla, datos in ejemplos.items():
+            cargados = [list(i[1:]) for i in self.leer(f"select * from {tabla}")]
+            for registro in datos:
+                if registro not in cargados:
+                    self.cargar(tabla, [None, *registro], False)
+
+        print("Se cargaron satisfactoriamente los datos de prueba")
 
 
 # Validar existencias de parcelas, campos y port
@@ -882,5 +956,5 @@ class Main:
 # Cómo hago eso? 1m cuadrado es 1kg de materia seca? cuanto pesa cada vaca? solo tengo el peso inicial
 # Hice un modelito burdo como para tener algo, le sumo 25kg por més de vida a la vaca
 
-main = Main(False)
+main = Main(seEjectua=True)
 main.menu.iniciar()
