@@ -19,6 +19,10 @@ nuleables = [
     "fec_estimada",
     "id_segui",
 ]
+
+idsIngreso = {"parc": ["parcela", "id_parc"]}
+# campo en hijo: [tabla, campo en padre]
+
 # Que valores pueden ser ingresados como nulos,
 # Ya sea por que se autogeneran, como la foreign key,
 # o por que no son estrictamente requeridos
@@ -108,7 +112,12 @@ def confirmar():
         print("No valido, reintente...")
 
 
-def ingresar(paraQue, variable, datoViejo=None):
+def ingresar(
+    paraQue,
+    variable,
+    coso,
+    datoViejo=None,
+):
     # TODO: VALIDAR UNIQUES
     print("")
     print("Ingrese el valor para", paraQue)
@@ -131,6 +140,28 @@ def ingresar(paraQue, variable, datoViejo=None):
         for i, j in enumerate(rangos[variable]):
             print(f"{i + 1}) {j}")
 
+    if variable in idsIngreso.keys():
+        print("Los códigos disponibles son: ")
+        txt = ""
+        posibles = []
+        print(
+            "a coso es ",
+            "select {} from {}".format(
+                idsIngreso[variable][1],
+                idsIngreso[variable][0],
+            ),
+        )
+        for i in coso.leer(
+            "select {} from {}".format(
+                idsIngreso[variable][1],
+                idsIngreso[variable][0],
+            )
+        ):
+            posibles.append(i[idsIngreso[variable][1]])
+            txt += str(i[idsIngreso[variable][1]]) + ","
+
+        print(txt[:-1])
+
     while True:
         valor = input("Valor: ")
 
@@ -146,9 +177,19 @@ def ingresar(paraQue, variable, datoViejo=None):
 
         else:
             if variable in fechas:
-                print("FORMATEO DE FECHAS MASTER")
-                return valor
+                valor = valor.strip().lower()
+                ano = valor[:4]
+                mes = valor[5:]
 
+                if mes.isdigit() and ano.isdigit():
+                    ano = int(ano)
+                    mes = int(mes)
+
+                    if 1900 < ano < int(datetime.datetime.now().year):
+                        if 0 < mes < 13:
+                            return valor
+
+                print("Ingrese una fecha válida")
             elif variable in decimales:
                 try:
                     valor = float(valor)
@@ -171,6 +212,14 @@ def ingresar(paraQue, variable, datoViejo=None):
 
                 print(f"Ingrese un entero del 1 al {len(rangos[variable])}...")
 
+            elif variable in idsIngreso.keys():
+                if valor.isnumeric():
+                    valor = int(valor)
+                    if valor in posibles:
+                        return valor
+                    print("No está en los disponibles")
+                else:
+                    print("Ingrese un número")
             else:
                 if valor.isnumeric():
                     return int(valor)
@@ -180,7 +229,7 @@ def ingresar(paraQue, variable, datoViejo=None):
 
 
 # Funciones de apoyo
-def cargar(datos, textos, datos_viejos=None):
+def cargar(datos, textos, self, datos_viejos=None):
     # len datos debe corresponder con len textos
     # los datos a cargar son como va en el registro
     # Textos es visual
@@ -189,7 +238,7 @@ def cargar(datos, textos, datos_viejos=None):
     diccionario = {}
     for llave, texto in zip(datos, textos):
         # Le paso los datos viejos si estamos modificando, si no, no
-        c = ingresar(texto, llave, datos_viejos[indice] if datos_viejos else None)
+        c = ingresar(texto, llave, self, datos_viejos[indice] if datos_viejos else None)
         if c == "CANCELAMOS":
             return
         diccionario[llave] = c
@@ -273,8 +322,8 @@ def tabla(datos):
 
 
 class Main:
-    def validarEnTabla(self, tabla, idN):
-        print("Ingrese el código para buscar")
+    def validarEnTabla(self, tabla, idN, msj="Ingrese el código para buscar"):
+        print(msj)
 
         # Esto lo agregué después así que no es tan eficiente
         # Hace las búsquedas dos veces y no se
@@ -331,10 +380,14 @@ class Main:
                 "su subcategoría",
                 "la parcela donde está",
             ],
+            self,
         )
 
         if valores:
-            self.cargar("animal", [*valores.values()])
+            self.cargar(
+                "animal",
+                [*valores.values()],
+            )
         else:
             print("Se canceló la operación")
 
@@ -363,6 +416,7 @@ class Main:
                 "la nueva subcategoría",
                 "la nueva parcela",
             ],
+            self,
             self.leer(
                 "select id_padre, id_madre, fec_nac, peso_nac, sexo, cat, sub_cat, parc from animal where id_anim = {}".format(
                     idObj
@@ -382,6 +436,7 @@ class Main:
                 "la nueva descripción",
                 "la nueva fecha estimada de nacimiento",
             ],
+            self,
             self.leer(
                 "select id_anim_seg, fec_seg, estado_desc, fec_estimada from seguimiento where id_segui = {}".format(
                     idObj
@@ -415,6 +470,7 @@ class Main:
                 "el nuevo teléfono",
                 "el nuevo E-Mail",
             ],
+            self,
             self.leer(
                 "select fec_alta, tipo_campo, ancho, largo, nombre, propietario, telefono, email from campo where id_camp = {}".format(
                     idObj
@@ -444,6 +500,7 @@ class Main:
                 "el nuevo v. de pasto natural",
                 "el nuevo v. de pasto implantado",
             ],
+            self,
             self.leer(
                 "select id_camp_pot, ancho, largo, car_animal, vol_pasto_n, vol_pasto_l from potrero where id_pot = {}".format(
                     idObj
@@ -464,6 +521,7 @@ class Main:
                 "el nuevo ancho",
                 "el nuevo largo",
             ],
+            self,
             self.leer(
                 "select id_pot_parc, observaciones, ancho, largo from parcela where id_parc = {}".format(
                     idObj
@@ -485,6 +543,7 @@ class Main:
                 "el nuevo teléfono",
                 "el nuevo E-Mail",
             ],
+            self,
             self.leer(
                 "select nombre, apellido, telefono, email from cliente where id_cli = {}".format(
                     idObj
@@ -518,6 +577,7 @@ class Main:
                 "el telefono asociado",
                 "el e-mail asociado",
             ],
+            self,
         )
 
         if valores:
@@ -543,6 +603,7 @@ class Main:
                 "el volúmen de pasto N",
                 "el volúmen de pasto L",
             ],
+            self,
         )
 
         if valores:
@@ -564,6 +625,7 @@ class Main:
                 "el ancho de la parcela",
                 "el largo de la parcela",
             ],
+            self,
         )
 
         if valores:
@@ -579,6 +641,7 @@ class Main:
                 "la descripción",
                 "la fecha estimada de nacimiento",
             ],
+            self,
         )
 
         if valores:
@@ -638,6 +701,7 @@ class Main:
                 "numero de telefono",
                 "el E-Mail",
             ],
+            self,
         )
 
         if valores:
@@ -762,10 +826,7 @@ class Main:
         signos = ("?, " * (len(datos) - 1)) + "?"
         # Crea un string "(?, ?, ?)" con la cantidad de signos necesitada por la consulta
 
-        if id:
-            self.db.ejecutar("update {} values ({})".format(tabla, signos), datos)
-        else:
-            self.db.ejecutar("insert into {} values ({})".format(tabla, signos), datos)
+        self.db.ejecutar("insert into {} values ({})".format(tabla, signos), datos)
         print("\nDatos cargados correctamente...")
 
     def modificar(self, tabla: str, datos, idN: str, id: int):

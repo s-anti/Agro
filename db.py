@@ -98,6 +98,7 @@ class Db:
 
     def ejecutar(self, query: str, datos=None):
         if datos:
+            # print("el query es", query)
             self.cur.execute(query, list(datos))
         else:
             self.cur.execute(query)
