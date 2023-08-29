@@ -280,16 +280,26 @@ def tabla(datos):
     header = ""
 
     # TODO: ver que hacemos con el ancho
+    # Por ahora se hace del ancho necesario, no le importa el tamaño de la consola
     # podría ver de aprender a manejar curses pero ya fue
 
+    ancho = 0
+
+    for row in datos:
+        ancho = max(ancho, max([len(str(i)) for i in row]))
+
+    print("el ancho es ", ancho)
+
     for dato in datos[0].keys():
-        dt = f" {diccTitulos[dato]} "
+        dt = " {:^{ancho}} ".format(diccTitulos[dato], ancho=ancho)
 
         anchos.append(len(dt))
 
         header += dt
 
+    print("_" * len(header))
     print(header)
+    print("_" * len(header))
 
     for linea in datos:
         lineaTexto = ""
@@ -307,7 +317,10 @@ def tabla(datos):
                 lineaTexto += str(dato).center(anchos[i])
 
         print(lineaTexto)
+
+    print("_" * len(header))
     print("")
+
     print(f"Total: {len(datos)}")
 
     # TODO: Acá hago el cálculo de la carga de animales
