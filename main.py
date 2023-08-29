@@ -20,7 +20,7 @@ nuleables = [
     "id_segui",
 ]
 
-idsIngreso = {"parc": ["parcela", "id_parc"]}
+idsIngreso = {"parc": ["parcela", "id_parc"], "id_camp_pot": ["campo", "id_camp"]}
 # campo en hijo: [tabla, campo en padre]
 
 # Que valores pueden ser ingresados como nulos,
@@ -311,20 +311,20 @@ def tabla(datos):
     print(f"Total: {len(datos)}")
 
     # TODO: Acá hago el cálculo de la carga de animales
-    if "ancho" in datos[0].keys():
-        sup = datos[0]["ancho"] * datos[0]["largo"]
-        print(f"La superficie es {sup}")
-        ahora = datetime.now()
+    # if "ancho" in datos[0].keys():
+    #     sup = datos[0]["ancho"] * datos[0]["largo"]
+    #     print(f"La superficie es {sup}")
+    #     ahora = datetime.now()
 
-        totalPeso = 0
+    #     totalPeso = 0
 
-        for i in datos:
-            fecha = datetime(i["fec_nac"])
-            meses = ahora.year * 12 + ahora.month - (fecha.year * 12 + fecha.month)
+    #     for i in datos:
+    #         fecha = datetime(i["fec_nac"])
+    #         meses = ahora.year * 12 + ahora.month - (fecha.year * 12 + fecha.month)
 
-            totalPeso = meses * kilosPorMes
+    #         totalPeso = meses * kilosPorMes
 
-        print(f"Y en total las vacas comen {totalPeso * 0.03}kg por día")
+    #     print(f"Y en total las vacas comen {totalPeso * 0.03}kg por día")
 
 
 class Main:
@@ -502,7 +502,6 @@ class Main:
                 "id_camp_pot",
                 "ancho",
                 "largo",
-                "car_animal",
                 "vol_pasto_n",
                 "vol_pasto_l",
             ],
@@ -510,13 +509,12 @@ class Main:
                 "el nuevo campo",
                 "el nuevo ancho",
                 "el nuevo largo",
-                "la nueva carga animal",
                 "el nuevo v. de pasto natural",
                 "el nuevo v. de pasto implantado",
             ],
             self,
             self.leer(
-                "select id_camp_pot, ancho, largo, car_animal, vol_pasto_n, vol_pasto_l from potrero where id_pot = {}".format(
+                "select id_camp_pot, ancho, largo, vol_pasto_n, vol_pasto_l from potrero where id_pot = {}".format(
                     idObj
                 )
             )[0],
@@ -607,7 +605,6 @@ class Main:
                 "id_camp_pot",
                 "ancho",
                 "largo",
-                "car_animal",
                 "vol_pasto_n",
                 "vol_pasto_l",
             ],
@@ -616,7 +613,6 @@ class Main:
                 "el campo donde está el potrero",
                 "el ancho del potrero, en m",
                 "el largo del potrero, en m",
-                "la carga animal",
                 "el volúmen de pasto N",
                 "el volúmen de pasto L",
             ],
@@ -624,7 +620,19 @@ class Main:
         )
 
         if valores:
-            self.cargar("potrero", [*valores.values()])
+            v = {
+                "id_pot": valores["id_pot"],
+                "id_camp_pot": valores["id_camp_pot"],
+                "ancho": valores["ancho"],
+                "largo": valores["largo"],
+                "car_animal": valores["ancho"] * valores["largo"],
+                "vol_pasto_n": valores["vol_pasto_n"],
+                "vol_pasto_l": valores["vol_pasto_l"],
+            }
+            # valores.insert(5, valores["ancho"] * valores["largo"])
+            # valores["car_animal"] = valores["ancho"] * valores["largo"]
+
+            self.cargar("potrero", [*v.values()])
 
     def cargarParcela(self):
         valores = cargar(
@@ -787,7 +795,7 @@ class Main:
                 "Campos, potreros y parcelas": {
                     "Campos": {
                         "Listar Campos": lambda: self.funcionLeer(
-                            """select campo.*, count(pot.id_pot) as potreros, count(par.id_parc) as parcelas, count(a.id_anim) as animales
+                            """select campo.*, count(DISTINCT pot.id_pot) as potreros, count(DISTINCT par.id_parc) as parcelas, count( DISTINCT a.id_anim) as animales
                             from campo
                             left join potrero as pot
                             on id_camp_pot = id_camp
@@ -803,8 +811,21 @@ class Main:
                     },
                     "Potreros": {
                         "Listar Potreros": lambda: self.funcionLeer(
-                            "select potrero.*, count(id_parc) as parcelas, count(id_anim) as animales from potrero left join parcela on id_pot_parc = id_pot lef join animal on parc = id_parc group by id_pot"
+                            """SELECT potrero.*, count(id_pot_parc) as "parcelas", sum(anims) as "animales"
+                            from potrero 
+                            left join (
+                                select id_parc, id_pot_parc, count(id_anim) as anims
+                                from parcela
+                                left join animal
+                                on parc = id_parc
+                                group by parc
+                            )
+                            on id_pot_parc = id_pot
+                            group by id_pot_parc
+
+                            """
                         ),
+                        # Este de arriba no se que onda pero anduvo
                         "Cargar Potreros": self.cargarPotrero,
                         "Modificar Potreros": self.modificarPotrero,
                         "Eliminar Potreros": lambda: self.eliminar("potrero", "id_pot"),
@@ -903,7 +924,10 @@ class Main:
                     "email@defecto.com",
                 ],
             ],
-            "potrero": [[1, 100, 150, 20, 500, 750], [1, 80, 120, 15, 400, 600]],
+            "potrero": [
+                [1, 100, 150, 100 * 150, 500, 750],
+                [1, 80, 120, 80 * 120, 400, 600],
+            ],
             "parcela": [
                 [1, "Parcela A", 30, 40],
                 [2, "Parcela B", 25, 35],
