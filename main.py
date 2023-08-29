@@ -2,7 +2,6 @@ from db import Db
 from menu import Menu
 import datetime
 
-kilosPorMes = 25
 
 nuleables = [
     "id_anim",
@@ -20,7 +19,10 @@ nuleables = [
     "id_segui",
 ]
 
-idsIngreso = {"parc": ["parcela", "id_parc"], "id_camp_pot": ["campo", "id_camp"]}
+idsIngreso = {
+    "parc": ["parcela", "id_parc"],
+    "id_camp_pot": ["campo", "id_camp"],
+}  # PADRE MADRE
 # campo en hijo: [tabla, campo en padre]
 
 # Que valores pueden ser ingresados como nulos,
@@ -144,13 +146,7 @@ def ingresar(
         print("Los códigos disponibles son: ")
         txt = ""
         posibles = []
-        print(
-            "a coso es ",
-            "select {} from {}".format(
-                idsIngreso[variable][1],
-                idsIngreso[variable][0],
-            ),
-        )
+
         for i in coso.leer(
             "select {} from {}".format(
                 idsIngreso[variable][1],
@@ -304,7 +300,7 @@ def tabla(datos):
     for linea in datos:
         lineaTexto = ""
         keys = [*linea.keys()]
-
+        # TODO GIGANTE
         for i, dato in enumerate(linea):
             # Si la key está dentro de los rangos, en vez del dato presento el valor asociado
             # Se puede expandir para otros tipos de dato mas o menos fácil
@@ -690,7 +686,7 @@ class Main:
         if campo:
             tabla(
                 self.leer(
-                    """select animal.*, id_pot, campo.ancho as ancho, campo.largo as largo
+                    """select animal.*, id_pot 
                     from animal
                     join parcela on id_parc = parc
                     join potrero on id_pot = id_pot_parc
@@ -706,7 +702,7 @@ class Main:
         if pot:
             tabla(
                 self.leer(
-                    """select animal.*, id_pot, potrero.ancho as ancho, potrero.largo as largo from animal
+                    """select animal.*, id_pot from animal
                     join parcela on id_parc = parc
                     join potrero on id_pot = id_pot_parc
                     where id_pot = {}""".format(
@@ -720,7 +716,8 @@ class Main:
         if parcela:
             tabla(
                 self.leer(
-                    """select animal.*, id_pot, parcela.ancho, parcela.largo from animal
+                    """select animal.*, id_pot
+                    from animal
                     join parcela on id_parc = parc
                     join potrero on id_pot = id_pot_parc
                     where id_parc = {}""".format(
@@ -802,7 +799,7 @@ class Main:
                     "Cargar seguimiento": self.cargarSeguimiento,
                     "Modificar seguimiento": self.modificarSeguimiento,
                     "Eliminar seguimiento": lambda: self.eliminar(
-                        "seguimiento", "id_seg"
+                        "seguimiento", "id_segui"
                     ),
                 },
                 "Campos, potreros y parcelas": {
