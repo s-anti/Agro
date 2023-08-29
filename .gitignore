@@ -1,5 +1,6 @@
 # La base no la subo porque están los datos de ejemplo
 base.sqlite3
+test.py
 
 
 # Byte-compiled / optimized / DLL files
